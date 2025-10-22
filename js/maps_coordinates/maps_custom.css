@@ -1,0 +1,27 @@
+
+a.dl-leafletmap i.bi {
+    line-height: 19px !important;
+}
+
+a.btn.btn-white.dl-leafletmap {
+    display: inline;
+    float: right;
+    font-size: 12px;
+    margin-top: 10px;
+}
+
+a.btn.btn-white.dl-leafletmap i.bi {
+    float: none;
+    display: inline-block;
+    font-size: 12px;
+    color: inherit;
+    position: relative;
+    line-height: normal;
+}
+
+
+select#showBarYears_map{
+    margin-top: 10px;
+    width: 79px;
+    height: 33px;
+}
