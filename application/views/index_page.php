@@ -102,20 +102,6 @@
 		left: 20px;
     }
 
-	.left-modal {
-		left: 20px;
-		width: 500px;
-		top: 150px;
-		cursor: move;
-	}
-
-	.right-modal {
-		right: 20px;
-		width: 600px;
-		top: 20px;
-		cursor: move;
-	}
-
 	.right-modal .card {
 		border-radius: 10px;
 		transition: transform 0.2s ease;
@@ -136,6 +122,30 @@
 		padding: 15px;
 	}
 
+	.left-controls {
+		position: fixed;
+		top: 150px;     /* adjust starting height */
+		left: 25px;     /* position from left edge */
+		display: flex;
+		flex-direction: column;  /* stack vertically */
+		gap: 8px;       /* spacing between buttons */
+		z-index: 2000;
+	}
+
+	.left-modal {
+		width: 250px;
+		background: white;
+		border-radius: 10px;
+		box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+		margin-top: 5px;
+	}
+
+	.right-modal {
+		right: 20px;
+		width: 600px;
+		top: 20px;
+		cursor: move;
+	}
 
 	.pay-card{
 		/* background-color: #2138b7;  */
@@ -143,6 +153,8 @@
 		border: none !important;
 		padding: 2px;
 	}
+
+
   </style>
 </head>
 <body>
@@ -151,8 +163,8 @@
 	<div id="leafletmapmain"></div>
 
 	<!-- Location Filter -->
-	<div class="filter-modal">
-		<div class="form-group mb-2 mt-3 d-flex align-items-center gap-2">
+	<div class="filter-modal rounded-pill px-4">
+		<div class="form-group mb-1 mt-1 d-flex align-items-center gap-2">
 			<!-- Dropdown -->
 			<div class="custom-select-wrapper flex-grow-1 mx-2 position-relative">
 				<select class="form-control form-select custom-select-arrow" id="selectLocation" style="height: 45px; width: 100%;">
@@ -183,20 +195,85 @@
 				</select>
 			</div>
 
-			<!-- Search Button -->
-			<button class="btn btn-primary d-flex align-items-center justify-content-center" type="button" id="goBtn" style="height: 45px; width: 45px;">
+			<a href="#" class="btn d-flex align-items-center justify-content-center" type="button" id="resetBtn" style="height: 45px; width: 45px;" title="Reset Map">
+				<span>
+					<i class="fa fa-search" aria-hidden="true"></i>
+				</span>
+			</a>
+
+			<a href="#" class="btn d-flex align-items-center justify-content-center" type="button" id="resetBtn" style="height: 45px; width: 45px;" title="Reset Map">
+				<span>
+					<i class="fa fa-database" aria-hidden="true"></i>
+				</span>
+			</a>
+
+			<!-- Search Button   -->
+			<!--<button class="btn btn-primary d-flex align-items-center justify-content-center" type="button" id="goBtn" style="height: 45px; width: 45px;">
 				<i class="fa fa-search"></i>
-			</button>
+			</button> -->
 		</div>
 
 	</div>
 
-	<!-- Left Floating Modal -->
-	<div class="left-modal">
-		<h5>Controls</h5>
-		<p>This could contain filters, layers, or controls.</p>
-		<button class="btn btn-primary btn-sm text-end" id="leftBtn">Run Action</button>
+	<!-- Fixed Container for Left Controls -->
+	<div class="left-controls">
+		<!-- Button 1 -->
+		<button class="btn btn-success rounded-pill mb-2" 
+			type="button" 
+			data-bs-toggle="collapse" 
+			data-bs-target="#riceMapsCollapse" 
+			aria-expanded="false" 
+			aria-controls="riceMapsCollapse">
+			Rice Maps
+		</button>
+
+		<div class="collapse left-modal" id="riceMapsCollapse">
+			<div class="card card-body">
+				<h5>Rice Maps</h5>
+				<p>Layer or control options here.</p>
+				<button class="btn btn-primary btn-sm">Run</button>
+			</div>
+		</div>
+
+		<!-- Button 2 -->
+		<button class="btn btn-warning rounded-pill mb-2"
+			type="button" 
+			data-bs-toggle="collapse" 
+			data-bs-target="#yieldCollapse" 
+			aria-expanded="false" 
+			aria-controls="yieldCollapse">
+			Yield Stats
+		</button>
+
+		<div class="collapse left-modal" id="yieldCollapse">
+			<div class="card card-body">
+				<h5>Yield Statistics</h5>
+				<p>Display yield layers or data filters.</p>
+				<button class="btn btn-primary btn-sm">Analyze</button>
+			</div>
+		</div>
+
+		<!-- Button 3 -->
+		<button class="btn btn-info rounded-pill"
+			type="button" 
+			data-bs-toggle="collapse" 
+			data-bs-target="#weatherCollapse" 
+			aria-expanded="false" 
+			aria-controls="weatherCollapse">
+			Weather Data
+		</button>
+
+		<div class="collapse left-modal" id="weatherCollapse">
+			<div class="card card-body">
+				<h5>Weather Layers</h5>
+				<p>Temperature, rainfall, etc.</p>
+				<button class="btn btn-primary btn-sm">View</button>
+			</div>
+		</div>
 	</div>
+
+	
+
 
   	<!-- Right Floating Modal -->
 	<div class="right-modal" id="rightModal">
@@ -209,7 +286,7 @@
 
 		<div class="modal-body">
 			<p class="text-muted mb-3">
-			Key indicators of the rice industry based on the latest data.
+				Key indicators of the rice industry based on the latest data.
 			</p>
 
 			<div class="row g-3 mt-n1 px-0 text-center">
@@ -281,30 +358,30 @@
   <script>
 
 	function makeDraggable(modal) {
-  let offsetX, offsetY, isDragging = false;
+		let offsetX, offsetY, isDragging = false;
 
-  modal.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    offsetX = e.clientX - modal.getBoundingClientRect().left;
-    offsetY = e.clientY - modal.getBoundingClientRect().top;
-    modal.style.zIndex = 3000; // bring on top while dragging
-  });
+		modal.addEventListener('mousedown', (e) => {
+			isDragging = true;
+			offsetX = e.clientX - modal.getBoundingClientRect().left;
+			offsetY = e.clientY - modal.getBoundingClientRect().top;
+			modal.style.zIndex = 3000; // bring on top while dragging
+		});
 
-  document.addEventListener('mousemove', (e) => {
-    if (isDragging) {
-      modal.style.left = (e.clientX - offsetX) + 'px';
-      modal.style.top = (e.clientY - offsetY) + 'px';
-    }
-  });
+		document.addEventListener('mousemove', (e) => {
+			if (isDragging) {
+			modal.style.left = (e.clientX - offsetX) + 'px';
+			modal.style.top = (e.clientY - offsetY) + 'px';
+			}
+		});
 
-  document.addEventListener('mouseup', () => {
-    isDragging = false;
-  });
-}
+		document.addEventListener('mouseup', () => {
+			isDragging = false;
+		});
+	}
 
-document.addEventListener('DOMContentLoaded', () => {
-  document.querySelectorAll('.left-modal, .right-modal').forEach(makeDraggable);
-});
+	document.addEventListener('DOMContentLoaded', () => {
+		document.querySelectorAll('.left-modal, .right-modal').forEach(makeDraggable);
+	});
 
 
 
