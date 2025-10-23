@@ -93,7 +93,7 @@ class Areaharvestedmodel extends CI_Model {
                                             $ecosystem, $period = NULL, $year_type = NULL, $order = NULL, $limit = NULL, $region_code = NULL){
         
         
-        $this->db->select('l.locName AS location_name, g.geoCode AS map_ID, k.year AS year, SUM("k"."areaHarv") as value');
+        $this->db->select('l.locName AS location_name, g.geoCode AS map_ID, k.year AS year, SUM("k"."areaHarv") as value, k.psgc_code AS psgcCode');
         if($year_type == 1){
             $this->db->from('kpi_pay k');
         } else {
@@ -133,7 +133,7 @@ class Areaharvestedmodel extends CI_Model {
             $this->db->where('k.periodUnit', $period);
         }
         
-        $this->db->group_by(array("year", "location_name", "geoCode"));  
+        $this->db->group_by(array("year", "location_name", "geoCode", "psgcCode"));  
         
         if(isset($order)){
             $this->db->order_by('value', $order);

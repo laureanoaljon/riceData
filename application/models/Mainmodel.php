@@ -659,7 +659,7 @@ class Mainmodel extends CI_Model {
         $this->db->group_by(array("locCode", "locType")); 
         $subQuery =  $this->db->get_compiled_select();
         
-        $this->db->select('l.locCode as id, l.locName AS location_name, l.locType AS loc_type');
+        $this->db->select('l.locCode as id, l.locName AS location_name, l.locType AS loc_type, l.psgc_code AS psgc_code');
         $this->db->from("ids_location l");
         $this->db->join("($subQuery) t", 't.locCode = l.locCode AND t.locType = l.locType');
         $this->db->order_by('l.sort', 'ASC');
@@ -682,12 +682,12 @@ class Mainmodel extends CI_Model {
 	    // $this->db->where('locCode !=', "36");
         $subQuery =  $this->db->get_compiled_select();
          
-        $this->db->select('l.locCode as id, l.locName AS location_name, l.parent AS region, t.locType');
+        $this->db->select('l.locCode as id, l.locName AS location_name, l.parent AS region, t.locType, l.psgc_code');
         $this->db->from("ids_location l");
         $this->db->join("($subQuery) t", 't.locCode = l.locCode AND t.locType = l.locType');
         $subQuery2 =  $this->db->get_compiled_select();
          
-        $this->db->select('l.locCode as region_id, l.locName AS region_name, t.id AS province_id, t.location_name as province, t.locType as loc_type');
+        $this->db->select('l.locCode as region_id, l.locName AS region_name, t.id AS province_id, t.location_name as province, t.locType as loc_type, t.psgc_code AS psgc_code');
         $this->db->from("ids_location l");
         $this->db->join("($subQuery2) t", 't.region = l.locCode');
         
@@ -702,7 +702,7 @@ class Mainmodel extends CI_Model {
 
     function get_all_regions_and_provinces($table, $year_end = NULL) {
         // Fetch regions and provinces
-        $this->db->select('l.locCode as id, l.locName AS location_name, l.locType as loc_type, l.parent AS region, l.latitude AS lat, l.longitude AS lon');
+        $this->db->select('l.locCode as id, l.locName AS location_name, l.locType as loc_type, l.parent AS region, l.latitude AS lat, l.longitude AS lon, l.psgc_code AS psgc_code');
         $this->db->from("ids_location l");
         $this->db->where_in('l.locType', ['1', '2']); // Fetch both regions and provinces
         

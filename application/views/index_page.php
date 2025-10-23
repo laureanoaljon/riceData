@@ -13,6 +13,9 @@
 
   <link href="<?php echo base_url(); ?>resources/bootstrap5.min.css" rel="stylesheet"/>
 
+  <!-- Loading Overlay -->
+  <script src="<?php echo base_url(); ?>resources/loadingoverlay.min.js"></script>
+
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
@@ -126,7 +129,7 @@
 
 	.right-modal {
 		right: 20px;
-		width: 600px;
+		width: 650px;
 		top: 110px;
 		cursor: move;
 		padding: 15px;
@@ -144,7 +147,7 @@
 		position: fixed;
 		top: 90px;
 		left: 20px;
-		width: 450px;
+		width: 420px;
 		background: transparent;
 		border-radius: 10px;
 		padding: 15px;
@@ -158,8 +161,10 @@
 		/* border: 1px solid #ddd; */
 		border-radius: 8px;
 		margin-top: 10px;
+		box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
-    .action-button {
+    
+	.action-button {
       width: 100%;
       text-align: left;
       margin-top: 8px;
@@ -179,7 +184,7 @@
 	.form-label
 	.form-select
 	.form-check-label{
-		font-size: 0.8rem;
+		font-size: 0.7rem;
 	}
 
 	.add-btn{
@@ -193,9 +198,50 @@
 		display: inline-block;
 	}
 
+	/* Loading Overlay Styles */
+	#loadingOverlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(52, 100, 70, 0.6); /* green semi-transparent */
+		color: white;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		z-index: 9999;
+		font-family: Arial, sans-serif;
+	}
+
+	/* Spinner Animation */
+	.spinner {
+		border: 4px solid #fff;
+		border-top: 4px solid #297746;
+		border-radius: 50%;
+		width: 50px;
+		height: 50px;
+		animation: spin 1s linear infinite;
+		margin-bottom: 10px;
+	}
+
+	@keyframes spin {
+		0% { transform: rotate(0deg); }
+		100% { transform: rotate(360deg); }
+	}
+
+
   </style>
 </head>
 <body>
+
+	<!-- Loading Overlay -->
+	<div id="loadingOverlay">
+		<div class="spinner"></div>
+		<p>Loading. Please wait ...</p>
+	</div>
+
 
 	<!-- Map container -->
 	<div id="leafletmapmain"></div>
@@ -203,34 +249,46 @@
 	<!-- Location Filter -->
 	<div class="filter-modal rounded-pill px-3">
 		<div class="form-group mb-1 mt-1 d-flex align-items-center gap-2">
-			<img class="d-flex align-items-center justify-content-center" src="<?php echo base_url(); ?>assets/Department_of_Agriculture_of_the_Philippines.svg" height="50px" width="auto" title="DAC Logo">
+			<img class="d-flex align-items-center justify-content-center" src="<?php echo base_url(); ?>assets/Department_of_Agriculture_of_the_Philippines.svg" height="50px" width="auto" title="DA Logo">
+
+			<img class="d-flex align-items-center justify-content-center" src="<?php echo base_url(); ?>assets/DAC-Logo.png" height="45px" width="auto" title="DAC Logo">
 
 			<!-- Dropdown -->
 			<div class="custom-select-wrapper flex-grow-1 mx-2 position-relative">
 
 				<select class="form-control form-select custom-select-arrow rounded-pill" id="selectLocation" style="height: 40px; width: 100%;">
-					<option value="999" data-loc-type="2" selected>The Philippines</option>
+					<option value="999" data-loc-type="2" data-psgc="PHL" selected>The Philippines</option>
 
 					<?php
 						// Output regions as options
 						foreach ($regions as $region) {
-						echo '<option value="' . $region['id'] . '" data-loc-type="' . $region['loc_type'] . '">' . $region['location_name'] . '</option>';
+							echo '<option value="' . $region['id'] . '" 
+										data-loc-type="' . $region['loc_type'] . '" 
+										data-psgc="' . $region['psgc_code'] . '">' 
+										. $region['location_name'] . 
+								'</option>';
 						}
 
 						// Output provinces grouped under their respective regions
 						$current_region = '';
 						foreach ($provinces as $province) {
-						if ($province['region_name'] !== $current_region) {
-							if ($current_region !== '') {
-							echo '</optgroup>';
+							if ($province['region_name'] !== $current_region) {
+								if ($current_region !== '') {
+									echo '</optgroup>';
+								}
+								$current_region = $province['region_name'];
+								echo '<optgroup label="' . htmlspecialchars($current_region) . '">';
 							}
-							$current_region = $province['region_name'];
-							echo '<optgroup label="' . $current_region . '">';
+
+							echo '<option value="' . $province['province_id'] . '" 
+										data-loc-type="' . $province['loc_type'] . '" 
+										data-psgc="' . $province['psgc_code'] . '">' 
+										. htmlspecialchars($province['province']) . 
+								'</option>';
 						}
-						echo '<option value="' . $province['province_id'] . '" data-loc-type="' . $province['loc_type'] . '">' . $province['province'] . '</option>';
-						}
+
 						if ($current_region !== '') {
-						echo '</optgroup>';
+							echo '</optgroup>';
 						}
 					?>
 				</select>
@@ -256,160 +314,25 @@
 
 	</div>
 
-	<!-- Fixed Container for Left Controls -->
-	<div class="side-panel">
-		<!-- Button 1 -->
-		<button class="btn btn-success action-button" id="load_pay">
-			<div class="icon-container text-white"><i class="fa fa-line-chart"></i></div>
-			<div class="text-container">Production, Area and Yield Maps</div>
-		</button>
-
-		<!-- Map controls -->
-		<div class="map-layer-controls" id="pay_layer_controls">
-			<p><b>Select Filter:</b></p>
-
-			<div class="container-fluid px-3">
-				<!-- Year -->
-				<div class="row align-items-center mb-3">
-					<div class="col-3">
-					<h6 class="mb-0 form-label">Year:</h6>
-					</div>
-					<div class="col-9">
-					<select class="form-select form-select-sm" id="payYearFilter">
-						<option class="text-success" value="" disabled>Select Option</option>
-						<option value="2024" selected>2024</option>
-						<option value="2023">2023</option>
-						<option value="2022">2022</option>
-						<option value="2021">2021</option>
-						<option value="2020">2020</option>
-						<option value="2019">2019</option>
-						<option value="2018">2018</option>
-					</select>
-					</div>
-				</div>
-
-				<!-- Period -->
-				<div class="row align-items-center mb-3">
-					<div class="col-3">
-					<h6 class="mb-0 form-label">Period:</h6>
-					</div>
-					<div class="col-9">
-					<select class="form-select form-select-sm" id="payPeriodFilter">
-						<option class="text-success" value="" disabled>Select Option</option>
-						<option value="1" data-year-type="1" selected>Annual</option>
-						<option value="1" data-year-type="2">Semester 1</option>
-						<option value="2" data-year-type="2">Semester 2</option>
-						<option value="1" data-year-type="3">Quarter 1</option>
-						<option value="2" data-year-type="3">Quarter 2</option>
-						<option value="3" data-year-type="3">Quarter 3</option>
-						<option value="4" data-year-type="3">Quarter 4</option>
-					</select>
-					</div>
-				</div>
-
-				<!-- Another Period (example) -->
-				<div class="row align-items-center mb-3">
-					<div class="col-3">
-					<h6 class="mb-0 form-label">Ecosystem:</h6>
-					</div>
-					<div class="col-9">
-					<select class="form-select form-select-sm" id="payEcosystemFilter">
-						<option class="text-success" value="" disabled>Select Option</option>
-						<option value="2" selected>All Ecosystems</option>
-						<option value="1">Irrigated Areas</option>
-						<option value="0">Non-Irrigated Areas</option>      
-					</select>
-					</div>
-				</div>
-
-				<!-- Radio buttons -->
-				<div class="row mt-2 text-center">
-					<div class="col-12">
-					<div class="form-check form-check-inline">
-						<input class="form-check-input" type="radio" name="pay_layers" id="layer_production" value="production" checked>
-						<label class="form-check-label" for="layer_production">Production</label>
-					</div>
-
-					<div class="form-check form-check-inline">
-						<input class="form-check-input" type="radio" name="pay_layers" id="layer_area" value="area_raster">
-						<label class="form-check-label" for="layer_area">Area Harvested</label>
-					</div>
-
-					<div class="form-check form-check-inline">
-						<input class="form-check-input" type="radio" name="pay_layers" id="layer_yield" value="yield">
-						<label class="form-check-label" for="layer_yield">Yield</label>
-					</div>
-					</div>
-				</div>
-			</div>
-
-			
-			<div class="text-center mt-3 mb-3">
-				<button class="btn btn-success btn-sm w-50 add-btn" id="addBtn" style="border-radius: 12px;" data-layer="pay">
-					<i class="fa fa-plus"></i> &emsp;Add
-				</button>
-			</div>
-		</div>
-
-		<!-- Button 2 -->
-		<!-- <button class="btn btn-success action-button" id="load_land">
-			<div class="icon-container"><i class="fa fa-mountain"></i></div>
-			<div class="text-container">Land Maps</div>
-		</button>
-
-		<div class="map-layer-controls" id="land_layer_controls">
-			<p><b>Select Layer:</b></p>
-			<div class="form-check">
-			<input class="form-check-input" type="radio" name="land_layers" id="land1" value="land_cover" checked>
-			<label class="form-check-label" for="land1">Land Cover</label>
-			</div>
-			<div class="form-check">
-			<input class="form-check-input" type="radio" name="land_layers" id="land2" value="soil_type">
-			<label class="form-check-label" for="land2">Soil Type</label>
-			</div>
-			<div class="form-check">
-			<input class="form-check-input" type="radio" name="land_layers" id="land3" value="soil_nutrients">
-			<label class="form-check-label" for="land3">Soil Nutrient</label>
-			</div>
-			<button class="btn btn-success-info btn-sm w-100 mt-2" id="add_land_map">
-			<i class="fas fa-circle-plus"></i> Add Map
-			</button>
-		</div> -->
-
-		<!-- Other buttons (no controls yet) -->
-		<!-- <button class="btn btn-success action-button" id="load_water">
-			<div class="icon-container"><i class="fa fa-water"></i></div>
-			<div class="text-container">Water Resource Maps</div>
-		</button>
-
-		<button class="btn btn-success action-button" id="load_climate">
-			<div class="icon-container"><i class="fa fa-cloud-sun"></i></div>
-			<div class="text-container">Climate Maps</div>
-		</button>
-
-		<button class="btn btn-success action-button" id="load_damages">
-			<div class="icon-container"><i class="fa fa-triangle-exclamation"></i></div>
-			<div class="text-container">Damages Maps</div>
-		</button> -->
-	</div>
+	<!-- Side Panel -->
+    <?php echo $side_panel; ?>
 
   	<!-- Right Floating Modal -->
 	<div class="right-modal" id="rightModal">
 		<div class="modal-header d-flex justify-content-between align-items-center mb-2">
-			<h5 class="mb-0">Rice Data Description</h5>
-			<button class="btn btn-sm btn-outline-primary" id="rightBtn">
-			<i class="fa fa-refresh"></i> Refresh
-			</button>
+			<h6 class="mb-0">Data Description</h6>
+			<!-- <button class="btn btn-sm btn-outline-primary" id="rightBtn">
+				<i class="fa fa-refresh"></i> Refresh
+			</button> -->
 		</div>
 
 		<div class="modal-body">
-			<p class="text-muted mb-3">
+			<!-- <p class="text-muted mb-3">
 				Key indicators of the rice industry based on the latest data.
-			</p>
+			</p> -->
 
-			<div class="row g-3 mt-n1 px-0 text-center">
+			<!-- <div class="row g-3 mt-n1 px-0 text-center">
 			
-				<!-- Palay Production -->
 				<div class="col-4">
 					<a href="#" id="palay-production-link" class="text-decoration-none">
 					<div class="card card-btn text-center pay-card bg-success">
@@ -427,7 +350,6 @@
 					</a>
 				</div>
 
-				<!-- Area Harvested -->
 				<div class="col-4">
 					<a href="#" id="area-harvested-link" class="text-decoration-none">
 					<div class="card card-btn text-center pay-card bg-primary">
@@ -445,7 +367,6 @@
 					</a>
 				</div>
 
-				<!-- Average Yield -->
 				<div class="col-4">
 					<a href="#" id="yield-link" class="text-decoration-none">
 					<div class="card card-btn text-center pay-card bg-info">
@@ -463,14 +384,14 @@
 					</a>
 				</div>
 
-			</div>
+			</div> -->
 
 			<div class="row">
-				<div class="col-12 text-center mt-4">
+				<div class="col-12 text-center mt-1">
 
 					<div class="row mt-1 mb-n1">
 						<div class="col-12">
-							<div class="px-0" style="font-size: 0.75rem;">
+							<div class="px-0" style="font-size: 0.83rem;">
 								<div class="legend-box mt-0" id="legend-box-1" style="background:#FF7F00;"></div>
 								<p id="series-1" class="d-inline-block text-retain"></p>
 								<div class="legend-box" id="legend-box-2" style="background:#FFD92F;"></div>
@@ -481,6 +402,17 @@
 								<p id="series-4" class="d-inline-block text-retain"></p>
 							</div>
 						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="row mt-2 mb-0" style="font-size: 0.75rem;">
+				<div class="col-2">
+					<p id="opacityValue" class="font-weight-bold">Opacity: 90%</p>
+				</div>
+				<div class="col-10">
+					<div class="px-2 mb-0">
+						<input class="mb-0 slider success-slider" type="range" id="opacity" name="opacity" min="0" max="100" value="90" class="" style="width:100%;">
 					</div>
 				</div>
 			</div>
@@ -500,16 +432,28 @@
 
 	<!-- GEOJSON -->
 	<!-- <script type="text/javascript" src="<?php echo base_url(); ?>js/phl.city.js"></script> -->
-    <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-city-geo.js"></script>
+    <!-- <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-city-geo.js"></script>
     <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-reg-geo-james.js"></script>
     <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-prov-geo.js"></script>
     <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-regcity-geo-james.js"></script>
-    <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-provcity-geo.js"></script>
+    <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-provcity-geo.js"></script> -->
+
+	<script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-geo-reg-psgc.js"></script>
+	<script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-geo-prov-psgc.js"></script>
+
+	<script type="text/javascript" src="<?php echo base_url(); ?>js/maps.js"></script>
 
 	<script>
-		// Initially hide right modal
+		// ###################### Initially hide right modal ##########################
 		$('#rightModal').hide();
 
+		// Hide overlay after 2 seconds
+		setTimeout(function() {
+			$('#loadingOverlay').fadeOut();
+		}, 500);
+
+
+		// ##################### CODE FOR DRAGGABLE MODAL ##########################
 		function makeDraggable(modal) {
 			let offsetX, offsetY, isDragging = false;
 
@@ -532,26 +476,28 @@
 			});
 		}
 
-		document.addEventListener('DOMContentLoaded', () => {
-			document.querySelectorAll('.left-modal, .right-modal').forEach(makeDraggable);
-		});
+		// document.addEventListener('DOMContentLoaded', () => {
+		// 	document.querySelectorAll('.left-modal, .right-modal').forEach(makeDraggable);
+		// });
 
+
+		// ##################### TOGGLE LAYER CONTROLS ##########################
 
 		// Toggle visibility of corresponding map controls
 		$(function() {
 			$('#load_pay').click(function() {
 				$('#pay_layer_controls').slideToggle();
-				$('#land_layer_controls').slideUp();
+				$('#pad_layer_controls').slideUp();
 			});
 			
-			$('#load_land').click(function() {
-				$('#land_layer_controls').slideToggle();
+			$('#load_pad').click(function() {
+				$('#pad_layer_controls').slideToggle();
 				$('#pay_layer_controls').slideUp();
 			});
 			
-			$('#load_water, #load_climate, #load_damages').click(function() {
-				$('.map-layer-controls').slideUp();
-			});
+			// $('#load_water, #load_climate, #load_damages').click(function() {
+			// 	$('.map-layer-controls').slideUp();
+			// });
 		});
 
 
@@ -585,20 +531,21 @@
 			subdomains: 'abcd',
 		}).addTo(leaflet_map);
 
-		// Custom Rice Area Tile Overlay
-		var riceAreaLayer = L.tileLayer(
-			'https://ricelytics.philrice.gov.ph/descriptive_map/tiles/ricearea_tiles/RA_Tiles_2025Sem2/{z}/{x}/{y}.png',
-		{
-			maxZoom: 9,
-			minZoom: 6,
-			opacity: 0.9,
-			tms: true,
-			// errorTileUrl: 'https://tile.openstreetmap.org/6/63/35.png'
-		}
-		).addTo(leaflet_map);
+		// Add the custom rice area overlay by default
+		addRiceAreaLayer(leaflet_map);
 
 
+		// ############### ADD BUTTON CLICK EVENT #######################
 		$('#addBtn').on('click', function() {
+
+			// Show overlay
+			$('#loadingOverlay').show();
+
+			// Hide overlay after 2 seconds
+			setTimeout(function() {
+				$('#loadingOverlay').fadeOut();
+			}, 1500);
+
 
 			const locCode = $('#selectLocation').val();
             const locType = $('#selectLocation option:selected').data('loc-type');
@@ -622,6 +569,8 @@
 				var selectedEcosystem = $('#payEcosystemFilter').val();
 				var selectedLayer = $('input[name="pay_layers"]:checked').val();
 
+				// alert(selectedLayer);
+
 				$.ajax({
 					url: "<?php echo base_url(); ?>fetch/get_data",
 					method: 'POST',
@@ -635,11 +584,28 @@
 					success: function(response) {
 						console.log(response);
 
-						var dbRegsMap = JSON.parse(response['regional_production_geocoded']);
-						var reg_y3 = JSON.parse(response['regional_production_y3']);
+						var dbRegsMap = [];
+
+						if (selectedLayer === 'production') {
+							dbRegsMap = JSON.parse(response['regional_production_geocoded']);
+						} else if (selectedLayer === 'yield') {
+							dbRegsMap = JSON.parse(response['regional_yield_geocoded']);
+						} else if (selectedLayer === 'area_harvested') {
+							dbRegsMap = JSON.parse(response['regional_area_geo']);	
+						}
+
 
 						if (dbRegsMap && Object.keys(dbRegsMap).length > 0) {
-							regionalProductionMap(dbRegsMap, reg_y3, null, selectedPeriodText);
+							if (selectedLayer === 'production') {
+								regionalProductionMap(dbRegsMap, null, selectedPeriodText);
+								$('#legend-box-5').remove();
+							} else if (selectedLayer === 'area_harvested') {
+								regionalAreaHarvestedMap(dbRegsMap, null, selectedPeriodText);
+								$('#legend-box-5').remove();
+							} else if (selectedLayer === 'yield') {
+								regionalYieldMap(dbRegsMap);
+							}
+							
 						} else {
 							$.confirm({
 								title: '<span class="text-warning">Message</span>',
@@ -670,294 +636,39 @@
 		// END FOR CREATE MAP #######################################################################
 		
 		
-		document.getElementById('rightBtn').addEventListener('click', () => {
-			alert('Right modal button clicked!');
-		});
+		// document.getElementById('rightBtn').addEventListener('click', () => {
+		// 	alert('Right modal button clicked!');
+		// });
 
 
-		var heatmap_colors = [];
+		// Dynamically decide the rounding factor based on the values
+		function dynamicRound(value, scale = null) {
+			let magnitude = Math.pow(10, Math.floor(Math.log10(value)) - scale); // Adjust "-2" to control rounding scale
+			return Math.round(value / magnitude) * magnitude;
+		}
 
-		heatmap_colors['firsQ'] = {
-			color: '#FF7F00'
-		};
-		heatmap_colors['secoQ'] = {
-			color: '#FFD92F'
-		};
-		heatmap_colors['thirQ'] = {
-			color: '#4DAF4A'
-		};
-		heatmap_colors['fourQ'] = {
-			color: '#1F78B4'
-		};
-		heatmap_colors['defaultFill'] = {
-			color: 'rgba(165,215,224)'
-		};
+		function quantile(arr, p) {
+			// Sort the array
+			arr.sort((a, b) => a - b);
 
-		// MAPPPPPPP CODE
-		function regionalProductionMap(dbRegsMapData, reg_y3Data, locationCoordinatesData = null, periodText = null){
-                // // MAP CODE PRODUCTION
-                // GET DATA
-                // var dbRegsMap = dbRegsMapData
-                var reg_y3 = reg_y3Data;
+			const n = arr.length;
+			const h = (n - 1) * p + 1; // Linear interpolation formula
+			const index = Math.floor(h) - 1; // Nearest lower index (0-based)
+			const frac = h - Math.floor(h);  // Fractional part of index
 
-                var dbRegsMap = dbRegsMapData.filter(function (item) {
-                    // Check if palay_value is not null, undefined, or empty, and cast to integer
-                    return item.value !== null && item.value !== undefined && item.value !== '0';
-                });
-
-                // region - annual
-                var quartile1 = 500000;
-                var quartile2 = 1000000;
-                var quartile3 = 2000000;
-
-                if (periodText != "ANNUAL"){
-                    var data = dbRegsMap.map(item => parseFloat(item.value));
-
-                    var quartile1 = quantile(data, 0.25); // 25th percentile
-                    var quartile2 = quantile(data, 0.50); // 50th percentile (median)
-                    var quartile3 = quantile(data, 0.75); // 50th percentile (median)
-
-                    quartile1 = dynamicRound(quartile1, 1);
-                    quartile2 = dynamicRound(quartile2, 1);  
-                    quartile3 = dynamicRound(quartile3, 1);          
-                }
-                
-                var scales = [{
-                    "range": 0,
-                    "minValue": quartile1,
-                    "maxValue": "499999"
-                    },
-                    {
-                    "range": 1,
-                    "minValue": quartile2,
-                    "maxValue": "999999"
-                    },
-                    {
-                    "range": 2,
-                    "minValue": quartile3,
-                    "maxValue": "1999999.00"
-                    },
-                    {
-                    "range": 3,
-                    "minValue": "2000000",
-                    "maxValue": "2999999"
-                    },
-                ];
-
-                $('#series-1').html("≤ " + numberWithCommas(scales[0]["minValue"]));
-                $('#series-2').html("> " + numberWithCommas(scales[0]["minValue"]) + " to " + numberWithCommas(scales[1]["minValue"]));
-                $('#series-3').html("> " + numberWithCommas(scales[1]["minValue"]) + " to " + numberWithCommas(scales[2]["minValue"]));
-                $('#series-4').html("> " + numberWithCommas(scales[2]["minValue"]));        
-
-                var totalValue = dbRegsMap.reduce((acc, data) => acc + parseFloat(data.value), 0);
-
-                let mapDataR = [];
-
-                for (i = 0; i < dbRegsMap.length; i++) {
-                    var gc = dbRegsMap[i].map_ID;
-                    var value = parseFloat(dbRegsMap[i].value);
-                    var percentage = (value / totalValue) * 100;
-
-                    var fill_color = "";
-                    if (value > scales[2].minValue) {
-                        fill_color = "fourQ"; // Corresponds to the highest range
-                    } else if (value > scales[1].minValue) {
-                        fill_color = "thirQ"; // Corresponds to the third range
-                    } else if (value > scales[0].minValue) {
-                        fill_color = "secoQ"; // Corresponds to the second range
-                    } else {
-                        fill_color = "firsQ"; // Corresponds to the lowest range
-                    }
-
-                    mapDataR[gc] = {
-                        Location_name: dbRegsMap[i].location_name,
-                        Year: dbRegsMap[i].year,
-                        Value: parseInt(dbRegsMap[i].value).toLocaleString(),
-                        // Value: (dbRegsMap[i].value).toFixed(2).toLocaleString(),
-                        fillKey: fill_color,
-                        Percentage: percentage.toFixed(2), // Round to 2 decimal places
-                    };
-                }
-
-                var mapDataR_ready = mapDataR;
-
-                var leaflet_map_position_x = "";
-                var leaflet_map_position_y = "";
-                var zoom = "";
-
-                if (locationCoordinatesData){
-                    var coord = locationCoordinatesData;  
-                    var x = coord['longitude'];
-                    var y = coord['latitude'];
-                    var zoom = coord['zoom']; 
-
-                    var leaflet_map_position_x = coord['latitude'];
-                    var leaflet_map_position_y = coord['longitude'];
-                }
-
-                // COMMENT OUT
-                // let previousLayer = null; // Variable to store the previously clicked polygon layer
-
-                function onEachFeature_reg(feature, layer) {
-                    
-                    if(mapDataR_ready[feature.id]){
-                        var value = mapDataR_ready[feature.id].Value;
-                        var percentage = mapDataR_ready[feature.id].Percentage;
-
-                        layer.bindTooltip(
-                            "<strong>" + mapDataR_ready[feature.id].Location_name + 
-                            ": " + value + " mt (" + mapDataR_ready[feature.id].Year + 
-                            ")</strong><br><strong>Percent Share to Total Production: " + percentage + "%</strong>"
-                        ).openTooltip();
-
-                        var fill_key = mapDataR_ready[feature.id].fillKey;
-                        layer.on('mouseover', function(e) {
-                            // Unset highlight
-                            layer.setStyle({
-                                'opacity':0,
-                                //'weight': 2.5,
-                                'fill': true,
-                                'fillColor': heatmap_colors[fill_key].color,
-                                'fillOpacity': 0.3
-                            });
-                        });
-
-                        var color = heatmap_colors[fill_key].color;
-                        layer.on('mouseout', function(e) {
-                            // var opacity = getCurrentOpacity() || 0.9; // Default opacity if function returns undefined
-							var opacity = 1;
-                            layer.setStyle({
-                                'opacity': opacity,
-                                'fillColor': color,
-                                'fillOpacity': opacity
-                            });
-                        });
-
-                    }
-
-                }
-
-                function loadRegionalProductionMap() {
-
-                    createLeafletMap(leaflet_map_position_x, leaflet_map_position_y);
-
-                    mapLayer =  L.geoJSON(geojsonFeature_reg,{
-                        style: function(feature) {
-
-                            if(mapDataR_ready[feature.id]){
-                                
-                                var fill_key = mapDataR_ready[feature.id].fillKey;
-                                return {color: "#000000",weight: 1, fill: true, fillColor: heatmap_colors[fill_key].color, fillOpacity: 0.9};      
-                            }else{
-                                //  return {color: "#000000",weight: 0.5,opacity:0.5, fill: true, fillColor: heatmap_colors['defaultFill'].color, fillOpacity: 0.9}; 
-                                return { fill: false, stroke:false}; 
-                            }
-                        },onEachFeature:onEachFeature_reg
-                    }).addTo(leaflet_map);
-
-                    // Call updateRangeAppearance() after adding the layer to ensure it reflects the initial opacity value
-                    // updateRangeAppearance();
-
-                    let geoJSON_current_bounds = mapLayer.getBounds();
-                    // leaflet_map.fitBounds(geoJSON_current_bounds);
-                    // leaflet_map.setMaxBounds(geoJSON_current_bounds);
-
-                    // putResetZoomBtn(mapLayer, leaflet_map, leaflet_map_position_x, leaflet_map_position_y);
-
-                    // Add custom zoom control at the top left
-                    L.control.zoom({
-                        position: 'topright'
-                    }).addTo(leaflet_map);
-                            
-                    // putLegendBtn(leaflet_map);
-
-                    // // Add extra info button
-                    // putDownloadBtn(leaflet_map);
-
-                    // Add extra info button
-                    // putInfoBtn(leaflet_map);
-                }
-
-                loadRegionalProductionMap();
-            }
-
-
-			function createLeafletMap(leaflet_map_position_x, leaflet_map_position_y){
-
-				// Check if the map exists and is initialized
-				if (leaflet_map !== undefined && leaflet_map !== null) {
-					leaflet_map.remove();  // Remove the existing map instance from the container
-				}
-
-				var width = window.screen.width;
-				var lat, lon;
-
-				var locType = $('#selectLocation option:selected').data('loc-type');
-
-				// Check if leaflet_map_position_x and leaflet_map_position_y are provided
-				if (leaflet_map_position_x && leaflet_map_position_y) {
-					lat = leaflet_map_position_x;
-					lon = leaflet_map_position_y;
-
-					if(locType == 1){
-						zoom = 8;
-					} else {
-						zoom = 9; 
-					}
-				} else {
-					lat = 12.788929;
-					lon = 121.938415;
-
-					var zoom = 6;
-				}
-
-				leaflet_map = L.map('leafletmapmain', {
-					scrollWheelZoom: true,
-					preferCanvas: true,
-					zoomControl: false,
-					attributionControl: false,
-					maxZoom: 10, // max zoom level
-					minZoom: 6, // min zoom level
-				}).setView([lat , lon], zoom); // default LAT AND LAN: 12.788929, 121.938415
-
-
-				// Official
-				L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
-					maxZoom: 19,
-					attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-					subdomains: 'abcd',
-				}).addTo(leaflet_map);
-
+			if (index < 0) {
+				return arr[0]; // If the index is below range, return the minimum
+			} else if (index >= n - 1) {
+				return arr[n - 1]; // If the index is above range, return the maximum
+			} else {
+				// Linear interpolation between arr[index] and arr[index + 1]
+				return arr[index] + frac * (arr[index + 1] - arr[index]);
 			}
+		}
 
-			// Dynamically decide the rounding factor based on the values
-			function dynamicRound(value, scale = null) {
-				let magnitude = Math.pow(10, Math.floor(Math.log10(value)) - scale); // Adjust "-2" to control rounding scale
-				return Math.round(value / magnitude) * magnitude;
-			}
-
-			function quantile(arr, p) {
-				// Sort the array
-				arr.sort((a, b) => a - b);
-
-				const n = arr.length;
-				const h = (n - 1) * p + 1; // Linear interpolation formula
-				const index = Math.floor(h) - 1; // Nearest lower index (0-based)
-				const frac = h - Math.floor(h);  // Fractional part of index
-
-				if (index < 0) {
-					return arr[0]; // If the index is below range, return the minimum
-				} else if (index >= n - 1) {
-					return arr[n - 1]; // If the index is above range, return the maximum
-				} else {
-					// Linear interpolation between arr[index] and arr[index + 1]
-					return arr[index] + frac * (arr[index + 1] - arr[index]);
-				}
-			}
-
-			function numberWithCommas(x) {
-				return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-			}
+		function numberWithCommas(x) {
+			return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+		}
 
 
   	</script>

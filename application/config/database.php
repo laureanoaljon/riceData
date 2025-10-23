@@ -75,10 +75,10 @@ $query_builder = TRUE;
 
 $db['default'] = array(
 	'dsn'	=> '',
-	'hostname' => 'pgsql:host=localhost;dbname=sebu;port=5432', // for local database
+	'hostname' => 'pgsql:host=localhost;dbname=rice_data;port=5432', // for local database
 	'username' => 'postgres',
 	'password' => 'ricelytics',
-	'database' => 'sebu',
+	'database' => 'rice_data',
 	'dbdriver' => 'pdo',
 	'dbprefix' => '',
 	'pconnect' => FALSE,

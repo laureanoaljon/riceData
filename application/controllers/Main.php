@@ -26,14 +26,18 @@ class Main extends CI_Controller {
         $temp_array = $this->mainmodel->get_all_regions($source_table);
         $data['regions'] = $temp_array;
         $temp_array = array();
+
         
         $temp_array = $this->mainmodel->get_all_provinces($source_table);
         $data['provinces'] = $temp_array;
         $temp_array = array();
 
+
         $temp_array = $this->mainmodel->get_all_regions_and_provinces($source_table);
         $data['locations'] = $temp_array;
         $temp_array = array();
+
+        $data['side_panel'] = $this->load->view('side_panel', $data, true);
 
 		$this->load->view('index_page', $data);
 	}
