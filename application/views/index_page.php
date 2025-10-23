@@ -186,6 +186,12 @@
 		font-size: 0.8rem;
 	}
 
+	.legend-box {
+		width: 25px;
+		height: 12px;
+		margin: 0 5px;
+		display: inline-block;
+	}
 
   </style>
 </head>
@@ -403,61 +409,82 @@
 
 			<div class="row g-3 mt-n1 px-0 text-center">
 			
-			<!-- Palay Production -->
-			<div class="col-4">
-				<a href="#" id="palay-production-link" class="text-decoration-none">
-				<div class="card card-btn text-center pay-card bg-success">
-					<div class="card-body p-2">
-					<div class="col-12 d-flex align-items-center justify-content-between">
-						<h6 class="card-title mb-1 mt-2 text-white text-start" style="font-size: 0.9rem;" id="palayproduction_data_datelabel">Palay Production</h6>
-						<span class="mt-1"><i class="fa fa-chevron-right text-white"></i></span>
+				<!-- Palay Production -->
+				<div class="col-4">
+					<a href="#" id="palay-production-link" class="text-decoration-none">
+					<div class="card card-btn text-center pay-card bg-success">
+						<div class="card-body p-2">
+						<div class="col-12 d-flex align-items-center justify-content-between">
+							<h6 class="card-title mb-1 mt-2 text-white text-start" style="font-size: 0.9rem;" id="palayproduction_data_datelabel">Palay Production</h6>
+							<span class="mt-1"><i class="fa fa-chevron-right text-white"></i></span>
+						</div>
+						<h1 class="value-np fw-bold mb-0 mt-n2 text-white" id="palay_production_value">19.09</h1>
+						<div class="mx-auto mt-1">
+							<p class="text-note-pay"><span class="badge bg-warning px-2">million metric tons</span></p>
+						</div>
+						</div>
 					</div>
-					<h1 class="value-np fw-bold mb-0 mt-n2 text-white" id="palay_production_value">19.09</h1>
-					<div class="mx-auto mt-1">
-						<p class="text-note-pay"><span class="badge bg-warning px-2">million metric tons</span></p>
-					</div>
-					</div>
+					</a>
 				</div>
-				</a>
+
+				<!-- Area Harvested -->
+				<div class="col-4">
+					<a href="#" id="area-harvested-link" class="text-decoration-none">
+					<div class="card card-btn text-center pay-card bg-primary">
+						<div class="card-body p-2">
+						<div class="col-12 d-flex align-items-center justify-content-between">
+							<h6 class="card-title mb-1 mt-2 text-white text-start" style="font-size: 0.9rem;" id="areaharvested_data_datelabel">Area Harvested</h6>
+							<span class="mt-1"><i class="fa fa-chevron-right text-white"></i></span>
+						</div>
+						<h1 class="value-np fw-bold mb-0 mt-n2 text-white" id="area_harvested_value">4.65</h1>
+						<div class="mx-auto mt-1">
+							<p class="text-note-pay"><span class="badge bg-warning px-2">million hectares</span></p>
+						</div>
+						</div>
+					</div>
+					</a>
+				</div>
+
+				<!-- Average Yield -->
+				<div class="col-4">
+					<a href="#" id="yield-link" class="text-decoration-none">
+					<div class="card card-btn text-center pay-card bg-info">
+						<div class="card-body p-2">
+						<div class="col-12 d-flex align-items-center justify-content-between">
+							<h6 class="card-title mb-1 mt-2 text-white text-start" style="font-size: 0.9rem;" id="averageyield_data_datelabel">Average Yield</h6>
+							<span class="mt-1"><i class="fa fa-chevron-right text-white"></i></span>
+						</div>
+						<h1 class="value-np fw-bold mb-0 mt-n2 text-white" id="average_yield_value">4.11</h1>
+						<div class="mx-auto mt-1">
+							<p class="text-note-pay"><span class="badge bg-warning px-2">metric tons per hectare</span></p>
+						</div>
+						</div>
+					</div>
+					</a>
+				</div>
+
 			</div>
 
-			<!-- Area Harvested -->
-			<div class="col-4">
-				<a href="#" id="area-harvested-link" class="text-decoration-none">
-				<div class="card card-btn text-center pay-card bg-primary">
-					<div class="card-body p-2">
-					<div class="col-12 d-flex align-items-center justify-content-between">
-						<h6 class="card-title mb-1 mt-2 text-white text-start" style="font-size: 0.9rem;" id="areaharvested_data_datelabel">Area Harvested</h6>
-						<span class="mt-1"><i class="fa fa-chevron-right text-white"></i></span>
-					</div>
-					<h1 class="value-np fw-bold mb-0 mt-n2 text-white" id="area_harvested_value">4.65</h1>
-					<div class="mx-auto mt-1">
-						<p class="text-note-pay"><span class="badge bg-warning px-2">million hectares</span></p>
-					</div>
+			<div class="row">
+				<div class="col-12 text-center mt-4">
+
+					<div class="row mt-1 mb-n1">
+						<div class="col-12">
+							<div class="px-0" style="font-size: 0.75rem;">
+								<div class="legend-box mt-0" id="legend-box-1" style="background:#FF7F00;"></div>
+								<p id="series-1" class="d-inline-block text-retain"></p>
+								<div class="legend-box" id="legend-box-2" style="background:#FFD92F;"></div>
+								<p id="series-2" class="d-inline-block text-retain"></p>
+								<div class="legend-box" id="legend-box-3" style="background:#4DAF4A;"></div>
+								<p id="series-3" class="d-inline-block text-retain"></p>
+								<div class="legend-box" id="legend-box-4" style="background:#1F78B4;"></div>
+								<p id="series-4" class="d-inline-block text-retain"></p>
+							</div>
+						</div>
 					</div>
 				</div>
-				</a>
 			</div>
-
-			<!-- Average Yield -->
-			<div class="col-4">
-				<a href="#" id="yield-link" class="text-decoration-none">
-				<div class="card card-btn text-center pay-card bg-info">
-					<div class="card-body p-2">
-					<div class="col-12 d-flex align-items-center justify-content-between">
-						<h6 class="card-title mb-1 mt-2 text-white text-start" style="font-size: 0.9rem;" id="averageyield_data_datelabel">Average Yield</h6>
-						<span class="mt-1"><i class="fa fa-chevron-right text-white"></i></span>
-					</div>
-					<h1 class="value-np fw-bold mb-0 mt-n2 text-white" id="average_yield_value">4.11</h1>
-					<div class="mx-auto mt-1">
-						<p class="text-note-pay"><span class="badge bg-warning px-2">metric tons per hectare</span></p>
-					</div>
-					</div>
-				</div>
-				</a>
-			</div>
-
-			</div>
+			
 		</div>
 	</div>
 
@@ -585,7 +612,7 @@
 
 			// Example: use in logic
 			if (layer === 'pay') {
-				alert('You selected PAY layer!');
+				// alert('You selected PAY layer!');
 				$('#rightModal').show();
 
 				var selectedYear = $('#payYearFilter').val();
@@ -606,7 +633,7 @@
 						year_type: selectedYearType,
 					},
 					success: function(response) {
-						// console.log(response);
+						console.log(response);
 
 						var dbRegsMap = JSON.parse(response['regional_production_geocoded']);
 						var reg_y3 = JSON.parse(response['regional_production_y3']);
@@ -797,7 +824,8 @@
 
                         var color = heatmap_colors[fill_key].color;
                         layer.on('mouseout', function(e) {
-                            var opacity = getCurrentOpacity() || 0.9; // Default opacity if function returns undefined
+                            // var opacity = getCurrentOpacity() || 0.9; // Default opacity if function returns undefined
+							var opacity = 1;
                             layer.setStyle({
                                 'opacity': opacity,
                                 'fillColor': color,
@@ -828,13 +856,13 @@
                     }).addTo(leaflet_map);
 
                     // Call updateRangeAppearance() after adding the layer to ensure it reflects the initial opacity value
-                    updateRangeAppearance();
+                    // updateRangeAppearance();
 
                     let geoJSON_current_bounds = mapLayer.getBounds();
                     // leaflet_map.fitBounds(geoJSON_current_bounds);
                     // leaflet_map.setMaxBounds(geoJSON_current_bounds);
 
-                    putResetZoomBtn(mapLayer, leaflet_map, leaflet_map_position_x, leaflet_map_position_y);
+                    // putResetZoomBtn(mapLayer, leaflet_map, leaflet_map_position_x, leaflet_map_position_y);
 
                     // Add custom zoom control at the top left
                     L.control.zoom({
