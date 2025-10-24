@@ -130,7 +130,7 @@
 	.right-modal {
 		right: 20px;
 		width: 650px;
-		top: 110px;
+		top: 20px;
 		cursor: move;
 		padding: 15px;
 	}
@@ -294,17 +294,17 @@
 				</select>
 			</div>
 
-			<a href="#" class="btn d-flex align-items-center justify-content-center" type="button" id="resetBtn" style="height: 45px; width: 45px;" title="Reset Map">
+			<a href="#" class="btn d-flex align-items-center justify-content-center" type="button" id="searchBtn" style="height: 45px; width: 45px;" title="Search">
 				<span>
 					<i class="fa fa-search" aria-hidden="true"></i>
 				</span>
 			</a>
 
-			<a href="#" class="btn d-flex align-items-center justify-content-center" type="button" id="resetBtn" style="height: 45px; width: 45px;" title="Reset Map">
+			<!-- <a href="#" class="btn d-flex align-items-center justify-content-center" type="button" id="resetBtn" style="height: 45px; width: 45px;" title="Reset Map">
 				<span>
 					<i class="fa fa-database" aria-hidden="true"></i>
 				</span>
-			</a>
+			</a> -->
 
 			<!-- Search Button   -->
 			<!--<button class="btn btn-primary d-flex align-items-center justify-content-center" type="button" id="goBtn" style="height: 45px; width: 45px;">
@@ -432,14 +432,14 @@
 
 	<!-- GEOJSON -->
 	<!-- <script type="text/javascript" src="<?php echo base_url(); ?>js/phl.city.js"></script> -->
-    <!-- <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-city-geo.js"></script>
-    <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-reg-geo-james.js"></script>
+    <!-- <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-city-geo.js"></script> -->
+    <!-- <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-reg-geo-james.js"></script> -->
     <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-prov-geo.js"></script>
     <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-regcity-geo-james.js"></script>
-    <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-provcity-geo.js"></script> -->
+    <!-- <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-provcity-geo.js"></script> -->
 
 	<script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-geo-reg-psgc.js"></script>
-	<script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-geo-prov-psgc.js"></script>
+	<!-- <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-geo-prov-psgc.js"></script>  -->
 
 	<script type="text/javascript" src="<?php echo base_url(); ?>js/maps.js"></script>
 
@@ -536,7 +536,16 @@
 
 
 		// ############### ADD BUTTON CLICK EVENT #######################
-		$('#addBtn').on('click', function() {
+		$('#addBtn, #searchBtn').on('click', function() {
+
+			const openLayer = $('.map-layer-controls:visible').attr('id');
+			// Read data attributes
+			const layer = $(this).data('layer');
+
+			if (!openLayer) {
+				alert('Please select a layer to load data.');
+				return;
+			}
 
 			// Show overlay
 			$('#loadingOverlay').show();
@@ -546,19 +555,16 @@
 				$('#loadingOverlay').fadeOut();
 			}, 1500);
 
-
 			const locCode = $('#selectLocation').val();
             const locType = $('#selectLocation option:selected').data('loc-type');
-
-			// Read data attributes
-			const layer = $(this).data('layer');
+			const psgcCode = $('#selectLocation option:selected').data('psgc');
 
 			console.log('Clicked:', { layer });
 
 			let currentDataLayer = null;
 
 			// Example: use in logic
-			if (layer === 'pay') {
+			if (openLayer === 'pay_layer_controls') {
 				// alert('You selected PAY layer!');
 				$('#rightModal').show();
 
@@ -571,66 +577,137 @@
 
 				// alert(selectedLayer);
 
-				$.ajax({
-					url: "<?php echo base_url(); ?>fetch/get_data",
-					method: 'POST',
-					dataType: "JSON",
-					data: {
-						year: selectedYear,
-						ecosystem: selectedEcosystem,
-						period: selectedPeriod,
-						year_type: selectedYearType,
-					},
-					success: function(response) {
-						console.log(response);
+				if (psgcCode === 'PHL') {
 
-						var dbRegsMap = [];
+					$.ajax({
+						url: "<?php echo base_url(); ?>fetch/get_data",
+						method: 'POST',
+						dataType: "JSON",
+						data: {
+							year: selectedYear,
+							ecosystem: selectedEcosystem,
+							period: selectedPeriod,
+							year_type: selectedYearType,
+						},
+						success: function(response) {
+							console.log(response);
 
-						if (selectedLayer === 'production') {
-							dbRegsMap = JSON.parse(response['regional_production_geocoded']);
-						} else if (selectedLayer === 'yield') {
-							dbRegsMap = JSON.parse(response['regional_yield_geocoded']);
-						} else if (selectedLayer === 'area_harvested') {
-							dbRegsMap = JSON.parse(response['regional_area_geo']);	
-						}
+							var dbRegsMap = [];
 
-
-						if (dbRegsMap && Object.keys(dbRegsMap).length > 0) {
 							if (selectedLayer === 'production') {
-								regionalProductionMap(dbRegsMap, null, selectedPeriodText);
-								$('#legend-box-5').remove();
-							} else if (selectedLayer === 'area_harvested') {
-								regionalAreaHarvestedMap(dbRegsMap, null, selectedPeriodText);
-								$('#legend-box-5').remove();
+								dbRegsMap = JSON.parse(response['regional_production_geocoded']);
 							} else if (selectedLayer === 'yield') {
-								regionalYieldMap(dbRegsMap);
+								dbRegsMap = JSON.parse(response['regional_yield_geocoded']);
+							} else if (selectedLayer === 'area_harvested') {
+								dbRegsMap = JSON.parse(response['regional_area_geo']);	
+							}
+
+
+							if (dbRegsMap && Object.keys(dbRegsMap).length > 0) {
+								if (selectedLayer === 'production') {
+									regionalProductionMap(dbRegsMap, null, selectedPeriodText);
+									$('#series-5').remove();
+									$('#legend-box-5').remove();
+								} else if (selectedLayer === 'area_harvested') {
+									regionalAreaHarvestedMap(dbRegsMap, null, selectedPeriodText);
+									$('#series-5').remove();
+									$('#legend-box-5').remove();
+								} else if (selectedLayer === 'yield') {
+									regionalYieldMap(dbRegsMap);
+								}
+								
+							} else {
+								$.confirm({
+									title: '<span class="text-warning">Message</span>',
+									content: "No Available data.",
+									theme: 'supervan',
+									type: 'green',
+									buttons: {
+										OK: function () {
+											createNoDataLeafletMap();
+										}
+									}
+								});
+							}
+
+						},
+						error: function (request, status, error) {
+							console.log('Error: ', error);
+							console.log('Status: ', status);
+							console.log('Response: ', request.responseText);
+							alert('Error occurred while fetching data.');
+						}
+					});
+				} else {
+
+					// For province level
+					$.ajax({
+						url: "<?php echo base_url(); ?>fetch/get_data_by_region",
+						method: 'POST',
+						dataType: "JSON",
+						data: {
+							year: selectedYear,
+							location_id: locCode,
+							ecosystem: selectedEcosystem,
+							period: selectedPeriod,
+							year_type: selectedYearType
+						},
+						success: function(response) {
+							// console.log(response);
+
+							var dbProvsMap = [];
+
+							if (selectedLayer === 'production') {
+								dbProvsMap = JSON.parse(response['provincial_production_geocoded']);
+							} else if (selectedLayer === 'yield') {
+								dbProvsMap = JSON.parse(response['provincial_yield_geo']);
+							} else if (selectedLayer === 'area_harvested') {
+								dbProvsMap = JSON.parse(response['provincial_area_geocoded']);
 							}
 							
-						} else {
-							$.confirm({
-								title: '<span class="text-warning">Message</span>',
-								content: "No Available data.",
-								theme: 'supervan',
-								type: 'green',
-								buttons: {
-									OK: function () {
-										createNoDataLeafletMap();
-									}
+							var locationCoordinates = JSON.parse(response['location_coordinates']);
+
+							if (dbProvsMap && Object.keys(dbProvsMap).length > 0) {
+								if (selectedLayer === 'production') {
+									regionProductionMapByProvince(dbProvsMap, locationCoordinates, selectedPeriodText);
+									$('#series-5').remove();
+									$('#legend-box-5').remove();
+								} else if (selectedLayer === 'area_harvested') {
+									regionAreaHarvestedMapByProvince(dbProvsMap, locationCoordinates, selectedPeriodText);
+									$('#series-5').remove();
+									$('#legend-box-5').remove();
+								} else if (selectedLayer === 'yield') {
+									regionYieldMapByProvince(dbProvsMap, locationCoordinates);
 								}
-							});
+								
+							} else {
+								$.confirm({
+									title: '<span class="text-warning">Message</span>',
+									content: "No Available data.",
+									theme: 'supervan',
+									type: 'green',
+									buttons: {
+										OK: function () {
+											createNoDataLeafletMap();
+										}
+									}
+								});
+							}
+
+						},
+						error: function (request, status, error) {
+							console.log('Error: ', error);
+							console.log('Status: ', status);
+							console.log('Response: ', request.responseText);
+							alert('Error occurred while fetching data.');
 						}
-
-					},
-					error: function (request, status, error) {
-						console.log('Error: ', error);
-						console.log('Status: ', status);
-						console.log('Response: ', request.responseText);
-						alert('Error occurred while fetching data.');
-					}
-				});
-
+					});
+				}
 
 			}
+
+
+
 		});
 
 		// END FOR CREATE MAP #######################################################################

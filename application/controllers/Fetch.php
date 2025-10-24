@@ -9,6 +9,7 @@ class Fetch extends CI_Controller {
         $this->load->model('productionmodel');
         $this->load->model('yieldmodel');
         $this->load->model('areaharvestedmodel');
+        $this->load->model('locationmodel');
 
         $this->load->helper('html');
         $this->load->helper('url');
@@ -207,7 +208,6 @@ class Fetch extends CI_Controller {
 
     public function get_data_by_region(){
         $year = $this->input->post('year');
-        $area_type = $this->input->post('area_type');
         $category = $this->input->post('category');
         $location_code = $this->input->post('location_id');
         $ecosystem = $this->input->post('ecosystem');
@@ -270,20 +270,12 @@ class Fetch extends CI_Controller {
         $temp_array = array();
 
 
-
-
         $temp_array = $this->yieldmodel->get_yield_avgs_geocodes_current(null, '1', $year, $ecosystem, $location_code);
         foreach ($temp_array as &$active_array){
             $active_array['value'] = number_format($active_array['value'], 2);
         } 
         $data['provincial_yield_geo_current'] = json_encode($temp_array);
         $temp_array = array();
-
-
-     
-
-
-
 
         $temp_array = $this->yieldmodel->get_yield_avgs_geocodes_municities($location_code, '2', $year, null, $ecosystem, 'DESC', null, $location_code, $sem_prism);
         foreach ($temp_array as &$active_array){
