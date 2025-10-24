@@ -6,18 +6,14 @@
   <title>Rice Data</title>
 
   <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"> -->
+  <link href="<?php echo base_url(); ?>resources/bootstrap5.min.css" rel="stylesheet"/>
 
   <!-- FA Icons -->
   <link rel="stylesheet" href="<?php echo base_url(); ?>resources/font-awesome-4.7.0/css/font-awesome.min.css">
 
-  <link href="<?php echo base_url(); ?>resources/bootstrap5.min.css" rel="stylesheet"/>
-
-  <!-- Loading Overlay -->
-  <script src="<?php echo base_url(); ?>resources/loadingoverlay.min.js"></script>
-
   <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <link rel="stylesheet" href="<?php echo base_url(); ?>resources/leaflet.css"/>
 
   <style>
 
@@ -25,49 +21,49 @@
 
 	@font-face {
 		font-family: 'Poppins';
-		src: url('/webfonts/Poppins-Light.ttf') format('truetype');
+		src: url('./webfonts/Poppins-Light.ttf') format('truetype');
 		font-weight: 300;
 		font-style: normal;
 	}
 
 	@font-face {
 		font-family: 'Poppins';
-		src: url('/webfonts/Poppins-Regular.ttf') format('truetype');
+		src: url('./webfonts/Poppins-Regular.ttf') format('truetype');
 		font-weight: 400;
 		font-style: normal;
 	}
 
 	@font-face {
 		font-family: 'Poppins';
-		src: url('/webfonts/Poppins-Medium.ttf') format('truetype');
+		src: url('./webfonts/Poppins-Medium.ttf') format('truetype');
 		font-weight: 500;
 		font-style: normal;
 	}
 
 	@font-face {
 		font-family: 'Poppins';
-		src: url('/webfonts/Poppins-SemiBold.ttf') format('truetype');
+		src: url('./webfonts/Poppins-SemiBold.ttf') format('truetype');
 		font-weight: 600;
 		font-style: normal;
 	}
 
 	@font-face {
 		font-family: 'Poppins';
-		src: url('/webfonts/Poppins-Bold.ttf') format('truetype');
+		src: url('./webfonts/Poppins-Bold.ttf') format('truetype');
 		font-weight: 700;
 		font-style: normal;
 	}
 
 	@font-face {
 		font-family: 'Poppins';
-		src: url('/webfonts/Poppins-ExtraBold.ttf') format('truetype');
+		src: url('./webfonts/Poppins-ExtraBold.ttf') format('truetype');
 		font-weight: 800;
 		font-style: normal;
 	}
 
 	@font-face {
 		font-family: 'Poppins';
-		src: url('/webfonts/Poppins-Black.ttf') format('truetype');
+		src: url('./webfonts/Poppins-Black.ttf') format('truetype');
 		font-weight: 900;
 		font-style: normal;
 	}
@@ -137,7 +133,8 @@
 
 	.pay-card{
 		/* background-color: #2138b7;  */
-		background: linear-gradient(to top, #7a8ff5, #4a5fd3, #2138b7);
+		/* background: linear-gradient(to top, #7a8ff5, #4a5fd3, #2138b7); */
+		background: linear-gradient(to top, #668b54ff, #2f7336);
 		border: none !important;
 		padding: 2px;
 	}
@@ -147,7 +144,7 @@
 		position: fixed;
 		top: 90px;
 		left: 20px;
-		width: 420px;
+		width: 430px;
 		background: transparent;
 		border-radius: 10px;
 		padding: 15px;
@@ -320,71 +317,74 @@
   	<!-- Right Floating Modal -->
 	<div class="right-modal" id="rightModal">
 		<div class="modal-header d-flex justify-content-between align-items-center mb-2">
-			<h6 class="mb-0">Data Description</h6>
+			<h5 class="mb-0" id="title-description"></h5>
 			<!-- <button class="btn btn-sm btn-outline-primary" id="rightBtn">
 				<i class="fa fa-refresh"></i> Refresh
 			</button> -->
 		</div>
 
 		<div class="modal-body">
-			<!-- <p class="text-muted mb-3">
-				Key indicators of the rice industry based on the latest data.
-			</p> -->
 
-			<!-- <div class="row g-3 mt-n1 px-0 text-center">
+			<div id="cards-container" class="mb-3">
+				<div class="row g-3 mt-n1 px-0 text-center">
 			
-				<div class="col-4">
-					<a href="#" id="palay-production-link" class="text-decoration-none">
-					<div class="card card-btn text-center pay-card bg-success">
-						<div class="card-body p-2">
-						<div class="col-12 d-flex align-items-center justify-content-between">
-							<h6 class="card-title mb-1 mt-2 text-white text-start" style="font-size: 0.9rem;" id="palayproduction_data_datelabel">Palay Production</h6>
-							<span class="mt-1"><i class="fa fa-chevron-right text-white"></i></span>
-						</div>
-						<h1 class="value-np fw-bold mb-0 mt-n2 text-white" id="palay_production_value">19.09</h1>
-						<div class="mx-auto mt-1">
-							<p class="text-note-pay"><span class="badge bg-warning px-2">million metric tons</span></p>
-						</div>
-						</div>
+					<div class="col-4">
+						<a href="#" id="palay-production-link" class="text-decoration-none">
+							<div class="card card-btn text-center pay-card">
+								<div class="card-body p-2">
+									<div class="col-12 d-flex align-items-center justify-content-between">
+										<h6 class="card-title mb-1 mt-2 text-white text-start" style="font-size: 0.8rem;" id="palayproduction_label"></h6>
+										<!-- <span class="mt-1"><i class="fa fa-chevron-right text-white"></i></span> -->
+									</div>
+									<h1 class="value-np fw-bold mb-0 mt-n2 text-white" id="palayproduction_value"></h1>
+									<div class="mx-auto mt-1">
+										<p class="text-note-pay" style="font-size: 0.8rem;"><span class="badge bg-warning px-2" id="palayproduction_unit"></span></p>
+									</div>
+								</div>
+							</div>
+						</a>
 					</div>
-					</a>
-				</div>
 
-				<div class="col-4">
-					<a href="#" id="area-harvested-link" class="text-decoration-none">
-					<div class="card card-btn text-center pay-card bg-primary">
-						<div class="card-body p-2">
-						<div class="col-12 d-flex align-items-center justify-content-between">
-							<h6 class="card-title mb-1 mt-2 text-white text-start" style="font-size: 0.9rem;" id="areaharvested_data_datelabel">Area Harvested</h6>
-							<span class="mt-1"><i class="fa fa-chevron-right text-white"></i></span>
-						</div>
-						<h1 class="value-np fw-bold mb-0 mt-n2 text-white" id="area_harvested_value">4.65</h1>
-						<div class="mx-auto mt-1">
-							<p class="text-note-pay"><span class="badge bg-warning px-2">million hectares</span></p>
-						</div>
-						</div>
+					<div class="col-4">
+						<a href="#" id="area-harvested-link" class="text-decoration-none">
+							<div class="card card-btn text-center pay-card">
+								<div class="card-body p-2">
+									<div class="col-12 d-flex align-items-center justify-content-between">
+										<h6 class="card-title mb-1 mt-2 text-white text-start" style="font-size: 0.8rem;" id="areaharvested_label"></h6>
+										<!-- <span class="mt-1"><i class="fa fa-chevron-right text-white"></i></span> -->
+									</div>
+									<h1 class="value-np fw-bold mb-0 mt-n2 text-white" id="areaharvested_value"></h1>
+									<div class="mx-auto mt-1">
+										<p class="text-note-pay" style="font-size: 0.8rem;"><span class="badge bg-warning px-2" id="areaharvested_unit"></span></p>
+									</div>
+								</div>
+							</div>
+						</a>
 					</div>
-					</a>
-				</div>
 
-				<div class="col-4">
-					<a href="#" id="yield-link" class="text-decoration-none">
-					<div class="card card-btn text-center pay-card bg-info">
-						<div class="card-body p-2">
-						<div class="col-12 d-flex align-items-center justify-content-between">
-							<h6 class="card-title mb-1 mt-2 text-white text-start" style="font-size: 0.9rem;" id="averageyield_data_datelabel">Average Yield</h6>
-							<span class="mt-1"><i class="fa fa-chevron-right text-white"></i></span>
-						</div>
-						<h1 class="value-np fw-bold mb-0 mt-n2 text-white" id="average_yield_value">4.11</h1>
-						<div class="mx-auto mt-1">
-							<p class="text-note-pay"><span class="badge bg-warning px-2">metric tons per hectare</span></p>
-						</div>
-						</div>
+					<div class="col-4">
+						<a href="#" id="yield-link" class="text-decoration-none">
+							<div class="card card-btn text-center pay-card">
+								<div class="card-body p-2">
+									<div class="col-12 d-flex align-items-center justify-content-between">
+										<h6 class="card-title mb-1 mt-2 text-white text-start" style="font-size: 0.8rem;" id="averageyield_label"></h6>
+										<!-- <span class="mt-1"><i class="fa fa-chevron-right text-white"></i></span> -->
+									</div>
+									<h1 class="value-np fw-bold mb-0 mt-n2 text-white" id="averageyield_value"></h1>
+									<div class="mx-auto mt-1">
+										<p class="text-note-pay" style="font-size: 0.8rem;"><span class="badge bg-warning px-2" id="averageyield_unit"></span></p>
+									</div>
+								</div>
+							</div>
+						</a>
 					</div>
-					</a>
-				</div>
 
-			</div> -->
+				</div>
+			</div>
+
+			<div id="cards-container" class="mt-3 mb-3">
+				<canvas id="barChart" style="width:100%; max-height: 300px;"></canvas>
+			</div>
 
 			<div class="row">
 				<div class="col-12 text-center mt-1">
@@ -406,9 +406,9 @@
 				</div>
 			</div>
 
-			<div class="row mt-2 mb-0" style="font-size: 0.75rem;">
+			<div class="row mt-2 mb-0" style="font-size: 0.7rem;">
 				<div class="col-2">
-					<p id="opacityValue" class="font-weight-bold">Opacity: 90%</p>
+					<p id="opacityValue" class="font-weight-bold">Map Opacity: 90%</p>
 				</div>
 				<div class="col-10">
 					<div class="px-2 mb-0">
@@ -418,17 +418,33 @@
 			</div>
 			
 		</div>
+
+		<div class="modal-footer d-flex justify-content-between align-items-center">
+			<p id="data-source" style="font-size: 0.9rem"></p>
+		</div>
 	</div>
+
+	<!-- Chart JS -->
+	<script src="<?php echo base_url(); ?>resources/chart.umd.min.js"></script>
+
+	<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
 
 	<!-- jQuery (must come before your script) -->
 	<script src="<?php echo base_url(); ?>resources/jquery-3.6.4.min.js"></script>
 
+	<!-- Loading Overlay -->
+    <script src="<?php echo base_url(); ?>resources/loadingoverlay.min.js"></script>
+
   	<!-- JS Libraries -->
   	<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script> -->
 	<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script> -->
-  	<script src="<?php echo base_url(); ?>resources/bootstrap5.min.js"></script>
-	<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  	
+	<script src="<?php echo base_url(); ?>resources/bootstrap5.min.js"></script>
+	<script src="<?php echo base_url(); ?>resources/leaflet.js"></script>
 
+	<!-- SweetAlert2 -->
+	<script src="<?php echo base_url(); ?>resources/sweet-alert.js"></script>
 
 	<!-- GEOJSON -->
 	<!-- <script type="text/javascript" src="<?php echo base_url(); ?>js/phl.city.js"></script> -->
@@ -436,21 +452,34 @@
     <!-- <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-reg-geo-james.js"></script> -->
     <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-prov-geo.js"></script>
     <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-regcity-geo-james.js"></script>
-    <!-- <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-provcity-geo.js"></script> -->
+    <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-provcity-geo.js"></script>
 
 	<script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-geo-reg-psgc.js"></script>
 	<!-- <script type="text/javascript" src="<?php echo base_url(); ?>js/maps_coordinates/phl-geo-prov-psgc.js"></script>  -->
 
+	<!-- Custom JS file for map -->
 	<script type="text/javascript" src="<?php echo base_url(); ?>js/maps.js"></script>
 
 	<script>
 		// ###################### Initially hide right modal ##########################
 		$('#rightModal').hide();
 
-		// Hide overlay after 2 seconds
+		// ###################### Hide overlay after 2 seconds
 		setTimeout(function() {
 			$('#loadingOverlay').fadeOut();
 		}, 500);
+
+		// ######################## Hide all map-layer-controls initially
+		$('.action-button').on('click', function () {
+			// Reset all chevrons to down
+			$('.action-button i.fa-chevron-up')
+				.removeClass('fa-chevron-up')
+				.addClass('fa-chevron-down');
+			
+			// Toggle the clicked one
+			const $icon = $(this).find('i.fa-chevron-down, i.fa-chevron-up');
+			$icon.toggleClass('fa-chevron-down fa-chevron-up');
+		});
 
 
 		// ##################### CODE FOR DRAGGABLE MODAL ##########################
@@ -540,10 +569,16 @@
 
 			const openLayer = $('.map-layer-controls:visible').attr('id');
 			// Read data attributes
-			const layer = $(this).data('layer');
 
 			if (!openLayer) {
-				alert('Please select a layer to load data.');
+				Swal.fire({
+					title: 'No Layer Selected',
+					text: 'Please select a layer to load data.',
+					icon: 'success',
+					showConfirmButton: false,
+					timer: 2500, // Auto-close after 1 second
+					timerProgressBar: true
+				});
 				return;
 			}
 
@@ -553,17 +588,17 @@
 			// Hide overlay after 2 seconds
 			setTimeout(function() {
 				$('#loadingOverlay').fadeOut();
-			}, 1500);
+			}, 1000);
 
 			const locCode = $('#selectLocation').val();
+			const locName = $('#selectLocation option:selected').text();
             const locType = $('#selectLocation option:selected').data('loc-type');
 			const psgcCode = $('#selectLocation option:selected').data('psgc');
 
-			console.log('Clicked:', { layer });
 
 			let currentDataLayer = null;
 
-			// Example: use in logic
+			// ################################################################ FOR PAY LAYER
 			if (openLayer === 'pay_layer_controls') {
 				// alert('You selected PAY layer!');
 				$('#rightModal').show();
@@ -577,6 +612,16 @@
 
 				// alert(selectedLayer);
 
+
+				if (selectedLayer === 'production') {
+					$('#title-description').text('Palay Production in ' + locName);
+				} else if (selectedLayer === 'area_harvested') {
+					$('#title-description').text('Area Harvested in ' + locName);
+				} else if (selectedLayer === 'yield') {
+					$('#title-description').text('Average Yield in ' + locName);
+				}
+
+				// ########################################################################## FOR NATIONAL LEVEL
 				if (psgcCode === 'PHL') {
 
 					$.ajax({
@@ -588,10 +633,11 @@
 							ecosystem: selectedEcosystem,
 							period: selectedPeriod,
 							year_type: selectedYearType,
+							psgc_code: psgcCode
 						},
 						success: function(response) {
-							console.log(response);
-
+							// console.log(response);
+					
 							var dbRegsMap = [];
 
 							if (selectedLayer === 'production') {
@@ -602,33 +648,148 @@
 								dbRegsMap = JSON.parse(response['regional_area_geo']);	
 							}
 
-
 							if (dbRegsMap && Object.keys(dbRegsMap).length > 0) {
 								if (selectedLayer === 'production') {
-									regionalProductionMap(dbRegsMap, null, selectedPeriodText);
+									// regionalProductionMap(dbRegsMap, null, selectedPeriodText);
+									renderProductionMap('regional', dbRegsMap, null, selectedPeriodText);
 									$('#series-5').remove();
 									$('#legend-box-5').remove();
 								} else if (selectedLayer === 'area_harvested') {
-									regionalAreaHarvestedMap(dbRegsMap, null, selectedPeriodText);
+									// regionalAreaHarvestedMap(dbRegsMap, null, selectedPeriodText);
+									renderAreaHarvestedMap('regional', dbRegsMap, null, selectedPeriodText);
 									$('#series-5').remove();
 									$('#legend-box-5').remove();
 								} else if (selectedLayer === 'yield') {
-									regionalYieldMap(dbRegsMap);
+									// regionalYieldMap(dbRegsMap);
+									renderYieldMap('regional', dbRegsMap, null, selectedPeriodText);
 								}
 								
 							} else {
-								$.confirm({
-									title: '<span class="text-warning">Message</span>',
-									content: "No Available data.",
-									theme: 'supervan',
-									type: 'green',
-									buttons: {
-										OK: function () {
-											createNoDataLeafletMap();
-										}
+								
+								$('#loadingOverlay').hide();
+								$('#rightModal').hide();
+
+								Swal.fire({
+									title: 'No Available Data',
+									text: 'Please select another location.',
+									icon: 'info',
+									showConfirmButton: false,
+									timer: 2000,
+									timerProgressBar: true,
+									didClose: () => {
+										createNoDataLeafletMap(); // ✅ Run after it auto-closes
 									}
 								});
 							}
+
+							// FOR CARDS VALUES
+							const prodData = JSON.parse(response['annual_production']); // parse the JSON string
+							const productionValue = parseFloat(prodData.value); // convert string to number
+
+							const areaData = JSON.parse(response['annual_areaharvested']);
+							const areaharverstedValue = parseFloat(areaData.value);
+
+							const yieldData = JSON.parse(response['annual_yield']);
+							const averageYieldValue = parseFloat(yieldData.value);
+
+							// FOR CARDS TITLE AND VALUES
+							$('#palayproduction_label').html('Palay Production (' + selectedYear + ')');
+							$('#palayproduction_value').html(numberWithCommas(productionValue.toFixed(2)));
+							$('#palayproduction_unit').html('million metric tons');
+
+							$('#areaharvested_label').html('Area Harvested (' + selectedYear + ')');
+							$('#areaharvested_value').html(numberWithCommas(areaharverstedValue.toFixed(2)));
+							$('#areaharvested_unit').html('million hectares');
+
+							$('#averageyield_label').html('Average Yield (' + selectedYear + ')');
+							$('#averageyield_value').html(averageYieldValue.toFixed(2));
+							$('#averageyield_unit').html('metric tons per hectare');
+
+
+							// ###################################### FOR BAR CHART 
+							const ctx = document.getElementById('barChart');
+
+							// Sample data
+							const regions = ['Region I', 'Region II', 'Region III', 'Region IV', 'Region V'];
+							const values = [12.5, 19.8, 8.7, 15.2, 10.6];
+
+							// 🔹 Combine, sort (descending), and separate again
+							const sorted = regions
+							.map((region, i) => ({ region, value: values[i] }))
+							.sort((a, b) => b.value - a.value); // highest → lowest
+
+							const sortedLabels = sorted.map(item => item.region);
+							const sortedValues = sorted.map(item => item.value);
+
+							Chart.register(ChartDataLabels);
+
+							const barChart = new Chart(ctx, {
+								type: 'bar',
+								data: {
+									labels: sortedLabels,
+									datasets: [{
+										label: 'Palay Production (metric tons)',
+										data: sortedValues,
+										backgroundColor: ['#4CAF50', '#2196F3', '#FFC107', '#FF5722', '#9C27B0'],
+										borderRadius: 2,
+										barThickness: 30
+									}]
+								},
+								options: {
+									indexAxis: 'y',
+									responsive: true,
+									maintainAspectRatio: false,
+									layout: {
+										padding: {
+											right: 30 // 🔹 Add space for labels
+										}
+									},
+									scales: {
+										x: {
+											beginAtZero: true,
+											grid: {
+												display: false // 🔹 Hide vertical grid lines
+											},
+											title: {
+												display: true,
+												text: 'Metric Tons'
+											}
+										},
+										y: {
+											grid: {
+												display: false // 🔹 Hide horizontal grid lines
+											},
+											title: {
+												display: false
+											}
+										}
+									},
+									plugins: {
+										legend: {
+											display: false
+										},
+										tooltip: {
+											enabled: true
+										},
+										datalabels: {
+											align: 'right',   // 🔹 Align outside right edge
+											anchor: 'end',
+											clip: false,      // 🔹 Allow labels to go outside the chart
+											color: '#000',
+											font: {
+												weight: 'bold'
+											},
+											formatter: function(value) {
+												return value.toFixed(1); // or value + ' MT'
+											}
+										}
+									}
+								},
+								plugins: [ChartDataLabels]
+							});
+
+
+
 
 						},
 						error: function (request, status, error) {
@@ -638,71 +799,216 @@
 							alert('Error occurred while fetching data.');
 						}
 					});
+
+					$('#data-source').html('<b>Data Source:</b> Philippine Statistic Authority (PSA)');
 				} else {
 
-					// For province level
-					$.ajax({
-						url: "<?php echo base_url(); ?>fetch/get_data_by_region",
-						method: 'POST',
-						dataType: "JSON",
-						data: {
-							year: selectedYear,
-							location_id: locCode,
-							ecosystem: selectedEcosystem,
-							period: selectedPeriod,
-							year_type: selectedYearType
-						},
-						success: function(response) {
-							// console.log(response);
+					// USE LOCTYPE FOR NOW
+					// FOR PROVINCE LEVEL BY MUNICIPALITY
+					if (locType == 2) {
+						$.ajax({
+							url: "<?php echo base_url(); ?>fetch/get_data_by_province",
+							method: 'POST',
+							dataType: "JSON",
+							data: {
+								year: selectedYear,
+								location_id: locCode,
+								ecosystem: selectedEcosystem,
+								period: selectedPeriod,
+								year_type: selectedYearType
+							},
+							success: function(response) {
+								// console.log(response);
 
-							var dbProvsMap = [];
+								var dbMuniMap = [];
 
-							if (selectedLayer === 'production') {
-								dbProvsMap = JSON.parse(response['provincial_production_geocoded']);
-							} else if (selectedLayer === 'yield') {
-								dbProvsMap = JSON.parse(response['provincial_yield_geo']);
-							} else if (selectedLayer === 'area_harvested') {
-								dbProvsMap = JSON.parse(response['provincial_area_geocoded']);
-							}
-							
-							var locationCoordinates = JSON.parse(response['location_coordinates']);
-
-							if (dbProvsMap && Object.keys(dbProvsMap).length > 0) {
 								if (selectedLayer === 'production') {
-									regionProductionMapByProvince(dbProvsMap, locationCoordinates, selectedPeriodText);
-									$('#series-5').remove();
-									$('#legend-box-5').remove();
-								} else if (selectedLayer === 'area_harvested') {
-									regionAreaHarvestedMapByProvince(dbProvsMap, locationCoordinates, selectedPeriodText);
-									$('#series-5').remove();
-									$('#legend-box-5').remove();
+									dbMuniMap = JSON.parse(response['municipal_production_geocoded']);
 								} else if (selectedLayer === 'yield') {
-									regionYieldMapByProvince(dbProvsMap, locationCoordinates);
+									dbMuniMap = JSON.parse(response['municipal_yield_geo']);
+								} else if (selectedLayer === 'area_harvested') {
+									dbMuniMap = JSON.parse(response['municipal_area_geocoded']);	
+								}
+						
+								var locationCoordinates = JSON.parse(response['location_coordinates']);
+
+								if (dbMuniMap && Object.keys(dbMuniMap).length > 0) {
+
+									if (selectedLayer === 'production') {
+										// provinceMapByMunicipality(dbMuniMap, locationCoordinates, selectedPeriodText);
+										renderProductionMap('municipal', dbMuniMap, locationCoordinates, selectedPeriodText);
+										$('#series-5').remove();
+										$('#legend-box-5').remove();
+									} else if (selectedLayer === 'area_harvested') {
+										// regionalAreaHarvestedMap(dbRegsMap, null, selectedPeriodText);
+										renderAreaHarvestedMap('municipal', dbMuniMap, locationCoordinates, selectedPeriodText);
+										$('#series-5').remove();
+										$('#legend-box-5').remove();
+									} else if (selectedLayer === 'yield') {
+										renderYieldMap('municipal', dbMuniMap, locationCoordinates, selectedPeriodText);
+									}
+
+								} else {
+
+									$('#loadingOverlay').hide();
+									$('#rightModal').hide();
+
+									Swal.fire({
+										title: 'No Available Data',
+										text: 'Please select another location.',
+										icon: 'info',
+										showConfirmButton: false,
+										timer: 2000,
+										timerProgressBar: true,
+										didClose: () => {
+											createNoDataLeafletMap(); // ✅ Run after it auto-closes
+										}
+									});
+								}
+
+								// // FOR CARDS VALUES
+								const prodData = JSON.parse(response['annual_production']); // parse the JSON string
+								const productionValue = parseFloat(prodData.value); // convert string to number
+
+								const areaData = JSON.parse(response['annual_areaharvested']);
+								const areaharverstedValue = parseFloat(areaData.value);
+
+								const yieldData = JSON.parse(response['annual_yield']);
+								const averageYieldValue = parseFloat(yieldData.value);
+
+								// FOR CARDS TITLE AND VALUES
+								$('#palayproduction_label').html('Palay Production (' + selectedYear + ')');
+								$('#palayproduction_value').html(numberWithCommas(productionValue.toFixed(2)));
+								$('#palayproduction_unit').html('million metric tons');
+
+								$('#areaharvested_label').html('Area Harvested (' + selectedYear + ')');
+								$('#areaharvested_value').html(numberWithCommas(areaharverstedValue.toFixed(2)));
+								$('#areaharvested_unit').html('million hectares');
+
+								$('#averageyield_label').html('Average Yield (' + selectedYear + ')');
+								$('#averageyield_value').html(averageYieldValue.toFixed(2));
+								$('#averageyield_unit').html('metric tons per hectare');
+
+							},
+							error: function (request, status, error) {
+								console.log('Error: ', error);
+								console.log('Status: ', status);
+								console.log('Response: ', request.responseText);
+								alert('Error occurred while fetching data.');
+							}
+						});
+
+						$('#data-source').html('<b>Data Source:</b> Philippine Rice Information System (PRiSM)');
+
+
+					// FOR REGION LEVEL BY PROVINCE 
+					} else {
+						$.ajax({
+							url: "<?php echo base_url(); ?>fetch/get_data_by_region",
+							method: 'POST',
+							dataType: "JSON",
+							data: {
+								year: selectedYear,
+								location_id: locCode,
+								ecosystem: selectedEcosystem,
+								period: selectedPeriod,
+								year_type: selectedYearType,
+								psgc_code: psgcCode
+							},
+							success: function(response) {
+								// console.log(response);
+
+								var dbProvsMap = [];
+
+								if (selectedLayer === 'production') {
+									dbProvsMap = JSON.parse(response['provincial_production_geocoded']);
+								} else if (selectedLayer === 'yield') {
+									dbProvsMap = JSON.parse(response['provincial_yield_geo']);
+								} else if (selectedLayer === 'area_harvested') {
+									dbProvsMap = JSON.parse(response['provincial_area_geocoded']);
 								}
 								
-							} else {
-								$.confirm({
-									title: '<span class="text-warning">Message</span>',
-									content: "No Available data.",
-									theme: 'supervan',
-									type: 'green',
-									buttons: {
-										OK: function () {
-											createNoDataLeafletMap();
-										}
-									}
-								});
-							}
+								var locationCoordinates = JSON.parse(response['location_coordinates']);
 
-						},
-						error: function (request, status, error) {
-							console.log('Error: ', error);
-							console.log('Status: ', status);
-							console.log('Response: ', request.responseText);
-							alert('Error occurred while fetching data.');
-						}
-					});
+								if (dbProvsMap && Object.keys(dbProvsMap).length > 0) {
+									if (selectedLayer === 'production') {
+										// regionProductionMapByProvince(dbProvsMap, locationCoordinates, selectedPeriodText);
+										renderProductionMap('province', dbProvsMap, locationCoordinates, selectedPeriodText);
+										$('#series-5').remove();
+										$('#legend-box-5').remove();
+									} else if (selectedLayer === 'area_harvested') {
+										// regionAreaHarvestedMapByProvince(dbProvsMap, locationCoordinates, selectedPeriodText);
+										renderAreaHarvestedMap('province', dbProvsMap, locationCoordinates, selectedPeriodText);
+										$('#series-5').remove();
+										$('#legend-box-5').remove();
+									} else if (selectedLayer === 'yield') {
+										// regionYieldMapByProvince(dbProvsMap, locationCoordinates);
+										renderYieldMap('province', dbProvsMap, locationCoordinates, selectedPeriodText);
+									}
+									
+								} else {
+
+									$('#loadingOverlay').hide();
+									$('#rightModal').hide();	
+									
+									Swal.fire({
+										title: 'No Available Data',
+										text: 'Please select another location.',
+										icon: 'info',
+										showConfirmButton: false,
+										timer: 2000,
+										timerProgressBar: true,
+										didClose: () => {
+											createNoDataLeafletMap(); // ✅ Run after it auto-closes
+										}
+									});
+								}
+
+
+								// // FOR CARDS VALUES
+								const prodData = JSON.parse(response['annual_production']); // parse the JSON string
+								const productionValue = parseFloat(prodData.value); // convert string to number
+
+								const areaData = JSON.parse(response['annual_areaharvested']);
+								const areaharverstedValue = parseFloat(areaData.value);
+
+								const yieldData = JSON.parse(response['annual_yield']);
+								const averageYieldValue = parseFloat(yieldData.value);
+
+								// FOR CARDS TITLE AND VALUES
+								$('#palayproduction_label').html('Palay Production (' + selectedYear + ')');
+								$('#palayproduction_value').html(numberWithCommas(productionValue.toFixed(2)));
+								$('#palayproduction_unit').html('million metric tons');
+
+								$('#areaharvested_label').html('Area Harvested (' + selectedYear + ')');
+								$('#areaharvested_value').html(numberWithCommas(areaharverstedValue.toFixed(2)));
+								$('#areaharvested_unit').html('million hectares');
+
+								$('#averageyield_label').html('Average Yield (' + selectedYear + ')');
+								$('#averageyield_value').html(averageYieldValue.toFixed(2));
+								$('#averageyield_unit').html('metric tons per hectare');
+
+							},
+							error: function (request, status, error) {
+								console.log('Error: ', error);
+								console.log('Status: ', status);
+								console.log('Response: ', request.responseText);
+								alert('Error occurred while fetching data.');
+							}
+						});
+
+
+						$('#data-source').html('<b>Data Source:</b> Philippine Statistic Authority (PSA)');
+
+					}
+					
+						
 				}
+
+			} else {
+
+				// Clear html content of cards container
+				$('#cards-container').html('');
 
 			}
 

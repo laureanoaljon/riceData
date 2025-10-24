@@ -15,7 +15,7 @@
         <div class="map-layer-controls" id="pay_layer_controls">
             <p><b>Select Filter:</b></p>
 
-            <div class="container-fluid px-4 mb-2">
+            <div class="container-fluid px-3 mb-2">
                 <!-- Radio buttons -->
                 <div class="row mt-2 mb-3 text-left">
                     <div class="col-12 d-flex gap-0">

@@ -38,6 +38,7 @@ class Fetch extends CI_Controller {
         $ecosystem = $this->input->post('ecosystem');
         $period = $this->input->post('period');
         $year_type = $this->input->post('year_type');
+        $psgc_code = $this->input->post('psgc_code');
 
         $sem_prism = null;
         if ($period == '1' && $year_type == '2'){
@@ -102,39 +103,39 @@ class Fetch extends CI_Controller {
         $data['provincial_production_geocoded'] = json_encode($temp_array);
         $temp_array = array();
 
-        //  Provincial Production
-        // Top provincial production - Y3
-        $temp_array = $this->productionmodel->get_production_totals(null, '2', $year, null, $ecosystem, $period, $year_type, 'DESC');
-        foreach ($temp_array as &$active_array){
-            $active_array['value'] = number_format($active_array['value'], 0, '.', '');
-        } 
-        $data['provincial_production_y3'] = json_encode($temp_array);
-        $temp_array = array();
+        // //  Provincial Production
+        // // Top provincial production - Y3
+        // $temp_array = $this->productionmodel->get_production_totals(null, '2', $year, null, $ecosystem, $period, $year_type, 'DESC');
+        // foreach ($temp_array as &$active_array){
+        //     $active_array['value'] = number_format($active_array['value'], 0, '.', '');
+        // } 
+        // $data['provincial_production_y3'] = json_encode($temp_array);
+        // $temp_array = array();
 
-        // Regional Production
-        $temp_array = $this->productionmodel->get_production_totals_regions(null, '1', $year, null, $ecosystem, $period, $year_type, 'DESC');
-        foreach ($temp_array as &$active_array){
-            $active_array['value'] = number_format($active_array['value'], 0, '.', '');
-        } 
-        $data['regional_production_y3'] = json_encode($temp_array);
-        $temp_array = array();
+        // // Regional Production
+        // $temp_array = $this->productionmodel->get_production_totals_regions(null, '1', $year, null, $ecosystem, $period, $year_type, 'DESC');
+        // foreach ($temp_array as &$active_array){
+        //     $active_array['value'] = number_format($active_array['value'], 0, '.', '');
+        // } 
+        // $data['regional_production_y3'] = json_encode($temp_array);
+        // $temp_array = array();
         
-        // Municipal Production
-        $temp_array = $this->productionmodel->get_production_totals_municities($location_code, '2', $year, null, $ecosystem, 'DESC', null, '999', $sem_prism);
-        foreach ($temp_array as &$active_array){
-            $active_array['value'] = number_format($active_array['value'], 0, '.', '');
-        } 
-        $data['municipal_production_y3'] = json_encode($temp_array);
-        $temp_array = array();
+        // // Municipal Production
+        // $temp_array = $this->productionmodel->get_production_totals_municities($location_code, '2', $year, null, $ecosystem, 'DESC', null, '999', $sem_prism);
+        // foreach ($temp_array as &$active_array){
+        //     $active_array['value'] = number_format($active_array['value'], 0, '.', '');
+        // } 
+        // $data['municipal_production_y3'] = json_encode($temp_array);
+        // $temp_array = array();
         
-        // Min and Max, municipalities
-        $min = $this->productionmodel->get_production_aggregate_prism(NULL, '3', $year, NULL, 'MIN', $ecosystem, NULL, NULL, NULL);
-        $max = $this->productionmodel->get_production_aggregate_prism(NULL, '3', $year, NULL, 'MAX', $ecosystem, NULL, NULL, NULL);
-        $data['min_municipal'] = ceil($min / 1000) * 1000;
-        $data['max_municipal'] = ceil($max / 1000) * 1000;
-        $temp_array = array();
+        // // Min and Max, municipalities
+        // $min = $this->productionmodel->get_production_aggregate_prism(NULL, '3', $year, NULL, 'MIN', $ecosystem, NULL, NULL, NULL);
+        // $max = $this->productionmodel->get_production_aggregate_prism(NULL, '3', $year, NULL, 'MAX', $ecosystem, NULL, NULL, NULL);
+        // $data['min_municipal'] = ceil($min / 1000) * 1000;
+        // $data['max_municipal'] = ceil($max / 1000) * 1000;
+        // $temp_array = array();
 
-        // // AREA HARVES CODE #######################################################################################################################################
+        // // AREA HARVEST CODE #######################################################################################################################################
         // // Provincial
 
         // Top provincial harvested area geocodes
@@ -145,26 +146,26 @@ class Fetch extends CI_Controller {
         $data['provincial_area_geo'] = json_encode($temp_array);
         $temp_array = array();
 
-        // Provincial Harvested Area
-        // Top harvest production - Y3
-        $temp_array = $this->areaharvestedmodel->get_harvestarea_totals(null, '2', $year, null, $ecosystem, $period, $year_type, 'DESC');
-        foreach ($temp_array as &$active_array){
-            $active_array['value'] = number_format($active_array['value'], 0, '.', '');
-        } 
-        $data['provincial_area_y3'] = json_encode($temp_array);
-        $temp_array = array();
+        // // Provincial Harvested Area
+        // // Top harvest production - Y3
+        // $temp_array = $this->areaharvestedmodel->get_harvestarea_totals(null, '2', $year, null, $ecosystem, $period, $year_type, 'DESC');
+        // foreach ($temp_array as &$active_array){
+        //     $active_array['value'] = number_format($active_array['value'], 0, '.', '');
+        // } 
+        // $data['provincial_area_y3'] = json_encode($temp_array);
+        // $temp_array = array();
 
         // Regional Harvest Area
         $temp_array = $this->areaharvestedmodel->get_harvestarea_totals_geocodes(null, '1', $year, null, $ecosystem, $period, $year_type, 'DESC');
         $data['regional_area_geo'] = json_encode($temp_array);
         $temp_array = array();
 
-        $temp_array = $this->areaharvestedmodel->get_harvestarea_totals_regions(null, '1', $year, null, $ecosystem, $period, $year_type, 'DESC');
-        foreach ($temp_array as &$active_array){
-            $active_array['value'] = number_format($active_array['value'], 0, '.', '');
-        } 
-        $data['regional_area_y3'] = json_encode($temp_array);
-        $temp_array = array();
+        // $temp_array = $this->areaharvestedmodel->get_harvestarea_totals_regions(null, '1', $year, null, $ecosystem, $period, $year_type, 'DESC');
+        // foreach ($temp_array as &$active_array){
+        //     $active_array['value'] = number_format($active_array['value'], 0, '.', '');
+        // } 
+        // $data['regional_area_y3'] = json_encode($temp_array);
+        // $temp_array = array();
 
         // Municipal Harvested Area
         $temp_array = $this->areaharvestedmodel->get_harvestarea_totals_municities($location_code, '2', $year, null, $ecosystem, 'DESC', null, '999', $sem_prism);
@@ -174,11 +175,28 @@ class Fetch extends CI_Controller {
         $data['municipal_area_geocoded'] = json_encode($temp_array);
         $temp_array = array();
         
-        // Min and Max, municipalities
-        $min = $this->areaharvestedmodel->get_harvestarea_aggregate_prism(NULL, '3', $year, NULL, 'MIN', $ecosystem, NULL, NULL, NULL);
-        $max = $this->areaharvestedmodel->get_harvestarea_aggregate_prism(NULL, '3', $year, NULL, 'MAX', $ecosystem, NULL, NULL, NULL);
-        $data['min_municipal_area'] = ceil($min / 1000) * 1000;
-        $data['max_municipal_area'] = ceil($max / 1000) * 1000;
+        // // Min and Max, municipalities
+        // $min = $this->areaharvestedmodel->get_harvestarea_aggregate_prism(NULL, '3', $year, NULL, 'MIN', $ecosystem, NULL, NULL, NULL);
+        // $max = $this->areaharvestedmodel->get_harvestarea_aggregate_prism(NULL, '3', $year, NULL, 'MAX', $ecosystem, NULL, NULL, NULL);
+        // $data['min_municipal_area'] = ceil($min / 1000) * 1000;
+        // $data['max_municipal_area'] = ceil($max / 1000) * 1000;
+
+        // Get annual data for current Production
+        $temp_array = $this->productionmodel->get_annual_production($psgc_code, $year, $ecosystem);
+        $temp_array['value'] = number_format($temp_array['value'] / 1000000, 2);
+        $data['annual_production'] = json_encode($temp_array);
+        $temp_array = array();
+
+        // Get annual data for current Area Harvested
+        $temp_array = $this->areaharvestedmodel->get_annual_areaharvested($psgc_code, $year, $ecosystem);
+        $temp_array['value'] = number_format($temp_array['value'] / 1000000, 2);
+        $data['annual_areaharvested'] = json_encode($temp_array);
+        $temp_array = array();
+
+        // Get annual data for current yield
+        $temp_array = $this->yieldmodel->get_annual_yield($psgc_code, $year, $ecosystem);
+        $data['annual_yield'] = json_encode($temp_array);
+        $temp_array = array();
         
         echo json_encode($data);
     }
@@ -213,6 +231,7 @@ class Fetch extends CI_Controller {
         $ecosystem = $this->input->post('ecosystem');
         $period = $this->input->post('period');
         $year_type = $this->input->post('year_type');
+        $psgc_code = $this->input->post('psgc_code');
 
         $sem_prism = '';
         if ($period == '1' && $year_type == '2'){
@@ -246,19 +265,19 @@ class Fetch extends CI_Controller {
         $data['municipal_production_geocoded'] = json_encode($temp_array);
         $temp_array = array();
 
-        // Top provincial production - Y3
-        $temp_array = $this->productionmodel->get_production_totals(null, '2', $year, null, $ecosystem, $period, $year_type, 'DESC');
-        foreach ($temp_array as &$active_array){
-            $active_array['value'] = number_format($active_array['value'], 0, '.', '');
-        } 
-        $data['provincial_production_y3'] = json_encode($temp_array);
-        $temp_array = array();
+        // // Top provincial production - Y3
+        // $temp_array = $this->productionmodel->get_production_totals(null, '2', $year, null, $ecosystem, $period, $year_type, 'DESC');
+        // foreach ($temp_array as &$active_array){
+        //     $active_array['value'] = number_format($active_array['value'], 0, '.', '');
+        // } 
+        // $data['provincial_production_y3'] = json_encode($temp_array);
+        // $temp_array = array();
 
-        $min = $this->productionmodel->get_production_aggregate_prism(NULL, '2', $year, NULL, 'MIN', 2, NULL, NULL, $location_code);
-        $max = $this->productionmodel->get_production_aggregate_prism(NULL, '2', $year, NULL, 'MAX', 2, NULL, NULL, $location_code);
-        $data['min_municipal_production'] = ceil($min / 1000) * 1000;
-        $data['max_municipal_production'] = ceil($max / 1000) * 1000;
-        $temp_array = array();
+        // $min = $this->productionmodel->get_production_aggregate_prism(NULL, '2', $year, NULL, 'MIN', 2, NULL, NULL, $location_code);
+        // $max = $this->productionmodel->get_production_aggregate_prism(NULL, '2', $year, NULL, 'MAX', 2, NULL, NULL, $location_code);
+        // $data['min_municipal_production'] = ceil($min / 1000) * 1000;
+        // $data['max_municipal_production'] = ceil($max / 1000) * 1000;
+        // $temp_array = array();
 
         // ////////////////////////////////////////////////////////////////////// YIELD CODE FOR REGION
         //maps section
@@ -301,19 +320,37 @@ class Fetch extends CI_Controller {
         $data['municipal_area_geocoded'] = json_encode($temp_array);
         $temp_array = array();
 
-        // Top provincial production - Y3
-        $temp_array = $this->areaharvestedmodel->get_harvestarea_totals(null, '1', $year, null, $ecosystem, $period, $year_type, 'DESC', null, $location_code);
-        foreach ($temp_array as &$active_array){
-            $active_array['value'] = number_format($active_array['value'], 0, '.', '');
-        } 
-        $data['provincial_area_y3'] = json_encode($temp_array);
+        // // Top provincial production - Y3
+        // $temp_array = $this->areaharvestedmodel->get_harvestarea_totals(null, '1', $year, null, $ecosystem, $period, $year_type, 'DESC', null, $location_code);
+        // foreach ($temp_array as &$active_array){
+        //     $active_array['value'] = number_format($active_array['value'], 0, '.', '');
+        // } 
+        // $data['provincial_area_y3'] = json_encode($temp_array);
+        // $temp_array = array();
+
+        // // Min and Max, municipalities
+        // $min = $this->areaharvestedmodel->get_harvestarea_aggregate_prism(NULL, '2', $year, NULL, 'MIN', 2, NULL, NULL, $location_code);
+        // $max = $this->areaharvestedmodel->get_harvestarea_aggregate_prism(NULL, '2', $year, NULL, 'MAX', 2, NULL, NULL, $location_code);
+        // $data['min_municipal_area'] = ceil($min / 1000) * 1000;
+        // $data['max_municipal_area'] = ceil($max / 1000) * 1000;
+        // $temp_array = array();
+
+
+        // Get annual data for current Production
+        $temp_array = $this->productionmodel->get_annual_production($psgc_code, $year, $ecosystem);
+        $temp_array['value'] = number_format($temp_array['value'] / 1000000, 2);
+        $data['annual_production'] = json_encode($temp_array);
         $temp_array = array();
 
-        // Min and Max, municipalities
-        $min = $this->areaharvestedmodel->get_harvestarea_aggregate_prism(NULL, '2', $year, NULL, 'MIN', 2, NULL, NULL, $location_code);
-        $max = $this->areaharvestedmodel->get_harvestarea_aggregate_prism(NULL, '2', $year, NULL, 'MAX', 2, NULL, NULL, $location_code);
-        $data['min_municipal_area'] = ceil($min / 1000) * 1000;
-        $data['max_municipal_area'] = ceil($max / 1000) * 1000;
+        // Get annual data for current Area Harvested
+        $temp_array = $this->areaharvestedmodel->get_annual_areaharvested($psgc_code, $year, $ecosystem);
+        $temp_array['value'] = number_format($temp_array['value'] / 1000000, 2);
+        $data['annual_areaharvested'] = json_encode($temp_array);
+        $temp_array = array();
+
+        // Get annual data for current yield
+        $temp_array = $this->yieldmodel->get_annual_yield($psgc_code, $year, $ecosystem);
+        $data['annual_yield'] = json_encode($temp_array);
         $temp_array = array();
         
         echo json_encode($data);
@@ -321,8 +358,6 @@ class Fetch extends CI_Controller {
 
     public function get_data_by_province(){
         $year = $this->input->post('year');
-        $area_type = $this->input->post('area_type');
-        $category = $this->input->post('category');
         $location_code = $this->input->post('location_id');
         $ecosystem = $this->input->post('ecosystem');
         $period = $this->input->post('period');
@@ -381,12 +416,12 @@ class Fetch extends CI_Controller {
         $data['municipal_area_geocoded'] = json_encode($temp_array);
         $temp_array = array();
 
-        // Min and Max, municipalities
-        $min = $this->areaharvestedmodel->get_harvestarea_aggregate_prism(NULL, '3', $year, NULL, 'MIN', 2, NULL, NULL, $location_code);
-        $max = $this->areaharvestedmodel->get_harvestarea_aggregate_prism(NULL, '3', $year, NULL, 'MAX', 2, NULL, NULL, $location_code);
-        $data['min_municipal_area'] = ceil($min / 1000) * 1000;
-        $data['max_municipal_area'] = ceil($max / 1000) * 1000;
-        $temp_array = array();
+        // // Min and Max, municipalities
+        // $min = $this->areaharvestedmodel->get_harvestarea_aggregate_prism(NULL, '3', $year, NULL, 'MIN', 2, NULL, NULL, $location_code);
+        // $max = $this->areaharvestedmodel->get_harvestarea_aggregate_prism(NULL, '3', $year, NULL, 'MAX', 2, NULL, NULL, $location_code);
+        // $data['min_municipal_area'] = ceil($min / 1000) * 1000;
+        // $data['max_municipal_area'] = ceil($max / 1000) * 1000;
+        // $temp_array = array();
 
         // Municipal (Area) - Current
         $temp_array = $this->areaharvestedmodel->get_areaharv_monthly_geocodes_municities($location_code, '2', $year, null, '2', 'DESC', NULL, NULL);
@@ -394,6 +429,24 @@ class Fetch extends CI_Controller {
             $active_array['value'] = number_format($active_array['value'], 2, '.', '');
         } 
         $data['municipal_current_monthly_areaha_geocoded'] = json_encode($temp_array);
+        $temp_array = array();
+
+
+        // Get annual data for current Production
+        $temp_array = $this->productionmodel->get_production_total($location_code, '2', $year, $ecosystem);
+        $temp_array['value'] = number_format($temp_array['value'] / 1000000, 2);
+        $data['annual_production'] = json_encode($temp_array);
+        $temp_array = array();
+
+        // Get annual data for current Area Harvested
+        $temp_array = $this->areaharvestedmodel->get_harvestarea_total($location_code, '2', $year, $ecosystem);
+        $temp_array['value'] = number_format($temp_array['value'] / 1000000, 2);
+        $data['annual_areaharvested'] = json_encode($temp_array);
+        $temp_array = array();
+
+        // Get annual data for current yield
+        $temp_array = $this->yieldmodel->get_yield_avg($location_code, '2', $year, $ecosystem);
+        $data['annual_yield'] = json_encode($temp_array);
         $temp_array = array();
 
         echo json_encode($data);

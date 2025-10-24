@@ -2,6 +2,22 @@
 
 class Productionmodel extends CI_Model {
 
+    function get_annual_production($psgc_code, $year, $ecosystem){
+        
+        $this->db->select('l.locName AS location_name, k.year AS year, SUM("k"."estProduction") as value');
+        $this->db->from('kpi_pay k');
+        $this->db->join('ids_location l', 'k.locCode = l.locCode AND k.locType = l.locType');
+        $this->db->join('ids_ecosystem e', 'k.eco = e.eco');
+        $this->db->where('k.psgc_code', $psgc_code);
+        $this->db->where('year', $year);
+        $this->db->where('k.eco', $ecosystem);
+        $this->db->order_by('year', 'ASC');
+        $this->db->group_by(array("year", "location_name"));
+        $query=$this->db->get();
+        $data_array = $query->result_array();
+        return $data_array[0];
+    }
+
     function get_production_total($location_code, $location_type, $year, $ecosystem){
         
         $this->db->select('l.locName AS location_name, k.year AS year, SUM("k"."estProduction") as value');
