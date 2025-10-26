@@ -59,12 +59,13 @@ function resetSlider() {
 }
 
 function renderProductionMap(mapType, dbData, locationCoordinatesData, periodText = null) {
+
     resetSlider();
 
     // --- Color setup ---
     const heatmapColors = {
         firsQ: { color: '#FF7F00' },
-        secoQ: { color: '#FFD92F' },
+        secoQ: { color: '#FFC107' },
         thirQ: { color: '#4DAF4A' },
         fourQ: { color: '#1F78B4' },
         defaultFill: { color: 'rgba(165,215,224)' }
@@ -74,15 +75,24 @@ function renderProductionMap(mapType, dbData, locationCoordinatesData, periodTex
     const validData = dbData.filter(item => item.value !== null && item.value !== undefined && item.value !== '0');
     if (!validData.length) return console.warn("No valid data to display.");
 
-    // --- Quartile calculations ---
-    const values = validData.map(item => parseFloat(item.value));
-    let q1 = quantile(values, 0.25),
-        q2 = quantile(values, 0.50),
+    let q1, q2, q3;
+
+    if (mapType === 'regional' && periodText === "Annual") {
+        q1 = 500000;
+        q2 = 1000000;
+        q3 = 2000000;
+    } else {
+
+        // --- Quartile calculations ---
+        const values = validData.map(item => parseFloat(item.value));
+        q1 = quantile(values, 0.25);
+        q2 = quantile(values, 0.50);
         q3 = quantile(values, 0.75);
 
-    q1 = dynamicRound(q1, 1);
-    q2 = dynamicRound(q2, 1);
-    q3 = dynamicRound(q3, 1);
+        q1 = dynamicRound(q1, 1);
+        q2 = dynamicRound(q2, 1);
+        q3 = dynamicRound(q3, 1);
+    }
 
     // --- Legend setup ---
     const scales = [
@@ -110,8 +120,8 @@ function renderProductionMap(mapType, dbData, locationCoordinatesData, periodTex
         const perc = (val / totalValue) * 100;
         const fillKey =
             val > q3 ? 'fourQ' :
-            val > q2 ? 'thirQ' :
-            val > q1 ? 'secoQ' : 'firsQ';
+                val > q2 ? 'thirQ' :
+                    val > q1 ? 'secoQ' : 'firsQ';
 
         mapData[item.map_ID] = {
             Location_name: item.location_name,
@@ -152,7 +162,7 @@ function renderProductionMap(mapType, dbData, locationCoordinatesData, periodTex
 
     // --- Feature interaction ---
     function onEachFeature(feature, layer) {
-    
+
         if (mapData[feature.id]) {
             const d = mapData[feature.id];
 
@@ -215,6 +225,8 @@ function renderAreaHarvestedMap(mapType, dbData, locationCoordinatesData, period
     q2 = dynamicRound(q2, 1);
     q3 = dynamicRound(q3, 1);
 
+    console.log('Quartiles Area Harvested Map:', q1, q2, q3);
+
     // --- Legend setup ---
     const scales = [
         { minValue: q1 },
@@ -241,8 +253,8 @@ function renderAreaHarvestedMap(mapType, dbData, locationCoordinatesData, period
         const perc = (val / totalValue) * 100;
         const fillKey =
             val > q3 ? 'fourQ' :
-            val > q2 ? 'thirQ' :
-            val > q1 ? 'secoQ' : 'firsQ';
+                val > q2 ? 'thirQ' :
+                    val > q1 ? 'secoQ' : 'firsQ';
 
         mapData[item.map_ID] = {
             Location_name: item.location_name,
@@ -323,11 +335,11 @@ function renderYieldMap(mapType, dbData, locationCoordinatesData, periodText = n
 
     // --- Color setup ---
     const heatmapColors = {
-        firsQ:  { color: '#F1A63C' },
-        secoQ:  { color: '#FFF883' },
-        thirQ:  { color: '#29883E' },
-        fourQ:  { color: '#3B93E4' },
-        fiftQ:  { color: '#B07AA1' },
+        firsQ: { color: '#F1A63C' },
+        secoQ: { color: '#FFF883' },
+        thirQ: { color: '#29883E' },
+        fourQ: { color: '#3B93E4' },
+        fiftQ: { color: '#B07AA1' },
         defaultFill: { color: 'rgba(165,215,224)' }
     };
 
@@ -865,7 +877,7 @@ function regionProductionMapByProvince(dbProvsMapData, locationCoordinatesData, 
 }
 
 // // ////////////////////////////////////////////////// MAP CODE PROVINCE BY MUNICIPALITY
-function provinceMapByMunicipality(dbMuniMapData, locationCoordinatesData, periodText = null){
+function provinceMapByMunicipality(dbMuniMapData, locationCoordinatesData, periodText = null) {
 
     var heatmap_colors = [];
 
@@ -891,10 +903,10 @@ function provinceMapByMunicipality(dbMuniMapData, locationCoordinatesData, perio
     });
 
 
-    var coord = locationCoordinatesData;  
+    var coord = locationCoordinatesData;
     var x = coord['longitude'];
     var y = coord['latitude'];
-    var zoom = coord['zoom']; 
+    var zoom = coord['zoom'];
 
     var data = dbMuniMap.map(item => parseFloat(item.value));
 
@@ -905,28 +917,28 @@ function provinceMapByMunicipality(dbMuniMapData, locationCoordinatesData, perio
     quartile1 = dynamicRound(quartile1, 1);
     quartile2 = dynamicRound(quartile2, 1);
     quartile3 = dynamicRound(quartile3, 1);
-   
+
 
     var scalesX = [{
         "range": 0,
         "minValue": quartile1,
         "maxValue": "499999"
-        },
-        {
+    },
+    {
         "range": 1,
         "minValue": quartile2,
         "maxValue": "999999"
-        },
-        {
+    },
+    {
         "range": 2,
         "minValue": quartile3,
         "maxValue": "1999999.00"
-        },
-        {
+    },
+    {
         "range": 3,
         "minValue": "2000000",
         "maxValue": "2999999"
-        },
+    },
     ];
 
     $('.legend-box').each(function (index) {
@@ -938,7 +950,7 @@ function provinceMapByMunicipality(dbMuniMapData, locationCoordinatesData, perio
     $('#series-2').html("> " + numberWithCommas(scalesX[0]["minValue"]) + " to " + numberWithCommas(scalesX[1]["minValue"]));
     $('#series-3').html("> " + numberWithCommas(scalesX[1]["minValue"]) + " to " + numberWithCommas(scalesX[2]["minValue"]));
     $('#series-4').html("> " + numberWithCommas(scalesX[2]["minValue"]));
-        
+
     let muniData = [];
 
     var totalValue = dbMuniMap.reduce((acc, data) => acc + parseFloat(data.value), 0);
@@ -975,18 +987,18 @@ function provinceMapByMunicipality(dbMuniMapData, locationCoordinatesData, perio
 
     function onEachFeature_ProvinceMapMunicipality(feature, layer) {
 
-        if(muniData_ready[feature.id]){
+        if (muniData_ready[feature.id]) {
             var value = muniData_ready[feature.id].Value;
             var percentage = muniData_ready[feature.id].Percentage;
 
-            layer.bindTooltip("<strong>"+feature.properties.ADM3_EN+", "+feature.properties.ADM2_EN+": "+value+" mt ("+muniData_ready[feature.id].Year+
+            layer.bindTooltip("<strong>" + feature.properties.ADM3_EN + ", " + feature.properties.ADM2_EN + ": " + value + " mt (" + muniData_ready[feature.id].Year +
                 ")</strong><br><strong>Percent Share to Total Production: " + percentage + "%</strong>"
             ).openTooltip();
 
-            layer.on('mouseover', function(e) {
-            // Unset highlight
+            layer.on('mouseover', function (e) {
+                // Unset highlight
                 layer.setStyle({
-                    'opacity':0,
+                    'opacity': 0,
                     //'weight': 2.5,
                     'fill': true,
                     'fillColor': heatmap_colors[fill_key].color,
@@ -995,8 +1007,8 @@ function provinceMapByMunicipality(dbMuniMapData, locationCoordinatesData, perio
             });
 
             var fill_key = muniData_ready[feature.id].fillKey;
-            var color = heatmap_colors[fill_key].color; 
-            layer.on('mouseout', function(e) {
+            var color = heatmap_colors[fill_key].color;
+            layer.on('mouseout', function (e) {
                 var opacity = getCurrentOpacity();
                 layer.setStyle({
                     'opacity': opacity,
@@ -1005,7 +1017,7 @@ function provinceMapByMunicipality(dbMuniMapData, locationCoordinatesData, perio
                 });
             });
         }
-        
+
     }
 
     function loadnewMapdata_ProvinceMapMunicipality() {
@@ -1014,36 +1026,36 @@ function provinceMapByMunicipality(dbMuniMapData, locationCoordinatesData, perio
 
         createLeafletMap(leaflet_map_position_x, leaflet_map_position_y, geoBoundary);
 
-        mapLayer = L.geoJSON(geojsonFeature_provcity,{
-            filter: function(feature) {
-                if(muniData_ready[feature.id]){
+        mapLayer = L.geoJSON(geojsonFeature_provcity, {
+            filter: function (feature) {
+                if (muniData_ready[feature.id]) {
                     return true;
-                }else{
+                } else {
                     return false;
                 }
             },
-            style: function(feature) {
+            style: function (feature) {
                 //alert(feature.id);
                 if (muniData_ready[feature.id]) {
                     var fill_key = muniData_ready[feature.id].fillKey;
-                    if(fill_key != ""){
-                            return {
+                    if (fill_key != "") {
+                        return {
                             color: "#000000",
                             weight: 0.5,
                             fill: true,
                             fillColor: heatmap_colors[fill_key].color,
                             fillOpacity: 0.9
                         };
-                    }else{
-                        return { fill: false, stroke:false}; 
+                    } else {
+                        return { fill: false, stroke: false };
                     }
-                    
+
                 } else {
-                    return { fill: false, stroke:false}; 
+                    return { fill: false, stroke: false };
                 }
 
 
-            },onEachFeature: onEachFeature_ProvinceMapMunicipality
+            }, onEachFeature: onEachFeature_ProvinceMapMunicipality
         }).addTo(leaflet_map);
 
         // Call updateRangeAppearance() after adding the layer to ensure it reflects the initial opacity value
@@ -1937,10 +1949,10 @@ function createLeafletMap(leaflet_map_position_x, leaflet_map_position_y, geoBou
     var riceLayer = addRiceAreaLayer(leaflet_map);
 
     // Add zoom control at bottom-right
-    L.control.zoom({ position: 'bottomright' }).addTo(leaflet_map);
+    L.control.zoom({ position: 'bottomleft' }).addTo(leaflet_map);
 
     // ✅ Add a button to toggle rice layer visibility
-    addLayerToggleButton(leaflet_map, riceLayer);
+    addButtonBottomLeft(leaflet_map, riceLayer);
 
 }
 
@@ -1976,7 +1988,7 @@ function createNoDataLeafletMap() {
     var riceLayer = addRiceAreaLayer(leaflet_map);
 
     // Add zoom control at bottom-right
-    L.control.zoom({ position: 'bottomright' }).addTo(leaflet_map);
+    L.control.zoom({ position: 'bottomleft' }).addTo(leaflet_map);
 }
 
 
@@ -2005,14 +2017,14 @@ function addRiceAreaLayer(map) {
 }
 
 // 🧩 Function: Add Layer Toggle Button
-function addLayerToggleButton(map, layer) {
-    var control = L.control({ position: 'bottomright' });
+function addButtonBottomLeft(map, layer) {
+    var control = L.control({ position: 'bottomleft' });
 
     control.onAdd = function () {
         var div = L.DomUtil.create('div', 'leaflet-bar');
         div.innerHTML = `
             <button id="toggleRiceLayerBtn" class="btn btn-sm"
-                style="background-color: #297746; font-size: small; border: none; color: white;"
+                style="background-color: #297746; font-size: 14px; border: none; color: white;"
                 title="Toggle Rice Area Layer">
                 🌾 Rice Area
             </button>`;

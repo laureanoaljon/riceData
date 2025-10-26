@@ -127,7 +127,7 @@
 		right: 20px;
 		width: 650px;
 		top: 20px;
-		cursor: move;
+		/* cursor: move; */
 		padding: 15px;
 	}
 
@@ -323,7 +323,7 @@
 			</button> -->
 		</div>
 
-		<div class="modal-body">
+		<div class="modal-body" style="max-height: 850px; overflow-y: auto;">
 
 			<div id="cards-container" class="mb-3">
 				<div class="row g-3 mt-n1 px-0 text-center">
@@ -382,16 +382,12 @@
 				</div>
 			</div>
 
-			<div id="cards-container" class="mt-3 mb-3">
-				<canvas id="barChart" style="width:100%; max-height: 300px;"></canvas>
-			</div>
-
-			<div class="row">
+			<div class="row mt-2">
 				<div class="col-12 text-center mt-1">
 
 					<div class="row mt-1 mb-n1">
 						<div class="col-12">
-							<div class="px-0" style="font-size: 0.83rem;">
+							<div class="px-2" style="font-size: 0.75rem;">
 								<div class="legend-box mt-0" id="legend-box-1" style="background:#FF7F00;"></div>
 								<p id="series-1" class="d-inline-block text-retain"></p>
 								<div class="legend-box" id="legend-box-2" style="background:#FFD92F;"></div>
@@ -406,7 +402,17 @@
 				</div>
 			</div>
 
-			<div class="row mt-2 mb-0" style="font-size: 0.7rem;">
+			<div id="barchart-container" class="mt-0 mb-4">
+				<canvas id="barChart" style="width:100%; height:550px;"></canvas>
+			</div>
+
+			<!-- <div class="pagination text-center mt-2">
+				<button id="prevPage" class="btn btn-sm btn-outline-primary">Previous</button>
+				<span id="pageInfo" class="mx-2"></span>
+				<button id="nextPage" class="btn btn-sm btn-outline-primary">Next</button>
+			</div> -->
+
+			<div class="row mt-4 mb-n3" style="font-size: 0.7rem;">
 				<div class="col-2">
 					<p id="opacityValue" class="font-weight-bold">Map Opacity: 90%</p>
 				</div>
@@ -550,7 +556,7 @@
 
 		// Add zoom control manually at bottom right
 		L.control.zoom({
-			position: 'bottomright' // can be 'topleft', 'topright', 'bottomleft', or 'bottomright'
+			position: 'bottomleft' // can be 'topleft', 'topright', 'bottomleft', or 'bottomright'
 		}).addTo(leaflet_map);
 
 		// Base map - CARTO Voyager (no labels)
@@ -569,6 +575,11 @@
 
 			const openLayer = $('.map-layer-controls:visible').attr('id');
 			// Read data attributes
+
+
+			if (window.barChartInstance) {
+				window.barChartInstance.destroy();
+			}
 
 			if (!openLayer) {
 				Swal.fire({
@@ -636,7 +647,7 @@
 							psgc_code: psgcCode
 						},
 						success: function(response) {
-							// console.log(response);
+							console.log(response);
 					
 							var dbRegsMap = [];
 
@@ -706,90 +717,133 @@
 							$('#averageyield_unit').html('metric tons per hectare');
 
 
+
+
 							// ###################################### FOR BAR CHART 
 							const ctx = document.getElementById('barChart');
 
-							// Sample data
-							const regions = ['Region I', 'Region II', 'Region III', 'Region IV', 'Region V'];
-							const values = [12.5, 19.8, 8.7, 15.2, 10.6];
+							// Extract regions
+							const regions = dbRegsMap.map(item => item.location_name);
 
-							// 🔹 Combine, sort (descending), and separate again
-							const sorted = regions
-							.map((region, i) => ({ region, value: values[i] }))
-							.sort((a, b) => b.value - a.value); // highest → lowest
+							// Extract numeric values
+							const values = dbRegsMap.map(item => parseFloat(item.value));
+
+							// Filter out invalid or zero values
+							const validData = dbRegsMap
+								.filter(item => item.value !== null && item.value !== undefined && parseFloat(item.value) > 0)
+								.map(item => ({ region: item.location_name, value: parseFloat(item.value) }));
+
+							// 🔹 Combine & sort (descending)
+							const sorted = validData.sort((a, b) => b.value - a.value);
 
 							const sortedLabels = sorted.map(item => item.region);
 							const sortedValues = sorted.map(item => item.value);
 
+							// 🔹 Declare quartile variables
+							let q1, q2, q3;
+
+							if (psgcCode === 'PHL' && selectedPeriodText === "Annual" && selectedLayer === 'production') {
+								// Static quartiles for national annual map
+								q1 = 500000;
+								q2 = 1000000;
+								q3 = 2000000;
+							} else if (selectedLayer === 'yield') {
+								q1 = 3;
+								q2 = 4;
+								q3 = 5;
+								q4 = 6;
+							} else {	
+								// --- 🔹 Quartile Calculation ---
+								const sortedArr = [...sortedValues].sort((a, b) => a - b);
+
+								q1 = quantile(sortedArr, 0.25);
+								q2 = quantile(sortedArr, 0.50);
+								q3 = quantile(sortedArr, 0.75);
+
+								q1 = dynamicRound(q1, 1);
+								q2 = dynamicRound(q2, 1);
+								q3 = dynamicRound(q3, 1);
+							}
+
+							// --- 🔹 Assign colors based on quartile (pabaliktad) ---
+							function getColor(value) {
+								const val = parseFloat(value);
+								if (isNaN(val)) return '#D3D3D3'; // Default color for invalid values
+
+								if (selectedLayer === 'area_harvested') {
+									if (val > q3) return '#377EB8';
+									else if (val > q2) return '#66C2A5';
+									else if (val > q1) return '#FDD49E';
+									else return '#E78A1F';
+								} else if (selectedLayer === 'yield') {
+									if (val > q4) return '#B07AA1';
+									else if (val > q3) return '#3B93E4';
+									else if (val > q2) return '#29883E';
+									else if (val > q1) return '#FFF883';
+									else return '#F1A63C'; 
+								} else {
+									if (val > q3) return '#1F78B4';
+									else if (val > q2) return '#4DAF4A';
+									else if (val > q1) return '#FFC107';
+									else return '#FF7F00';   
+								}
+
+							}
+
+							// Apply colors based on the same logic as map fillKey
+							const colors = sorted.map(item => getColor(item.value));
+
+							// --- 🔹 Chart.js ---
 							Chart.register(ChartDataLabels);
 
-							const barChart = new Chart(ctx, {
+							window.barChartInstance = new Chart(ctx, {
 								type: 'bar',
 								data: {
 									labels: sortedLabels,
 									datasets: [{
-										label: 'Palay Production (metric tons)',
-										data: sortedValues,
-										backgroundColor: ['#4CAF50', '#2196F3', '#FFC107', '#FF5722', '#9C27B0'],
-										borderRadius: 2,
-										barThickness: 30
+									label: 'Palay Production (metric tons)',
+									data: sortedValues,
+									backgroundColor: colors,
+									borderRadius: 2,
+									barThickness: '20',     // allow flexible sizing
+								barPercentage: 0.6,       // 🔹 smaller = thinner bars (default: 0.9)
+								categoryPercentage: 0.7,  // 🔹 smaller = more spacing between bars
 									}]
 								},
 								options: {
 									indexAxis: 'y',
 									responsive: true,
 									maintainAspectRatio: false,
-									layout: {
-										padding: {
-											right: 30 // 🔹 Add space for labels
-										}
-									},
+									layout: { padding: { right: 75 } },
 									scales: {
-										x: {
-											beginAtZero: true,
-											grid: {
-												display: false // 🔹 Hide vertical grid lines
-											},
-											title: {
-												display: true,
-												text: 'Metric Tons'
-											}
-										},
-										y: {
-											grid: {
-												display: false // 🔹 Hide horizontal grid lines
-											},
-											title: {
-												display: false
-											}
-										}
+									x: {
+										beginAtZero: true,
+										grid: { display: false },
+										title: { display: false, text: 'Metric Tons' }
+									},
+									y: {
+										grid: { display: false }
+									}
 									},
 									plugins: {
-										legend: {
-											display: false
-										},
-										tooltip: {
-											enabled: true
-										},
-										datalabels: {
-											align: 'right',   // 🔹 Align outside right edge
-											anchor: 'end',
-											clip: false,      // 🔹 Allow labels to go outside the chart
-											color: '#000',
-											font: {
-												weight: 'bold'
-											},
-											formatter: function(value) {
-												return value.toFixed(1); // or value + ' MT'
-											}
+									legend: { display: false },
+									tooltip: { enabled: true },
+									datalabels: {
+										align: 'right',
+										anchor: 'end',
+										clip: false,
+										color: '#000',
+										font: { weight: 'bold' },
+										formatter: (value) => {
+											const num = parseFloat(value);
+											if (isNaN(num)) return '';
+											return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 										}
+									}
 									}
 								},
 								plugins: [ChartDataLabels]
 							});
-
-
-
 
 						},
 						error: function (request, status, error) {
@@ -818,7 +872,7 @@
 								year_type: selectedYearType
 							},
 							success: function(response) {
-								// console.log(response);
+								console.log(response);
 
 								var dbMuniMap = [];
 
@@ -888,6 +942,129 @@
 								$('#averageyield_label').html('Average Yield (' + selectedYear + ')');
 								$('#averageyield_value').html(averageYieldValue.toFixed(2));
 								$('#averageyield_unit').html('metric tons per hectare');
+
+
+
+								// ###################################### FOR BAR CHART 
+								const ctx = document.getElementById('barChart');
+
+								// Extract municipalities
+								const municipalities = dbMuniMap.map(item => item.location_name);
+
+								// Extract numeric values
+								const values = dbMuniMap.map(item => parseFloat(item.value));
+
+								// Filter out invalid or zero values
+								const validData = dbMuniMap
+									.filter(item => item.value !== null && item.value !== undefined && parseFloat(item.value) > 0)
+									.map(item => ({ location: item.location_name.replace(/\\n/g, ', ').trim(), value: parseFloat(item.value) }));
+
+								// 🔹 Combine & sort (descending)
+								const sorted = validData.sort((a, b) => b.value - a.value);
+
+								const sortedLabels = sorted.map(item => item.location);
+								const sortedValues = sorted.map(item => item.value);
+
+								// 🔹 Declare quartile variables
+								let q1, q2, q3;
+
+								if (selectedLayer === 'yield') {
+									q1 = 3;
+									q2 = 4;
+									q3 = 5;
+									q4 = 6;
+								} else {
+									// --- 🔹 Quartile Calculation ---
+									const sortedArr = [...sortedValues].sort((a, b) => a - b);
+
+									q1 = quantile(sortedArr, 0.25);
+									q2 = quantile(sortedArr, 0.50);
+									q3 = quantile(sortedArr, 0.75);
+
+									q1 = dynamicRound(q1, 1);
+									q2 = dynamicRound(q2, 1);
+									q3 = dynamicRound(q3, 1);
+								}							
+
+								// --- 🔹 Assign colors based on quartile (pabaliktad) ---
+								function getColor(value) {
+									const val = parseFloat(value);
+									if (isNaN(val)) return '#D3D3D3'; // fallback for invalid numbers
+
+									if (selectedLayer === 'area_harvested') {
+										if (val > q3) return '#377EB8';
+										else if (val > q2) return '#66C2A5';
+										else if (val > q1) return '#FDD49E';
+										else return '#E78A1F';
+									} else if (selectedLayer === 'yield') {
+										if (val > q4) return '#B07AA1';
+										else if (val > q3) return '#3B93E4';
+										else if (val > q2) return '#29883E';
+										else if (val > q1) return '#FFF883';
+										else return '#F1A63C'; 
+									} else {
+										if (val > q3) return '#1F78B4';
+										else if (val > q2) return '#4DAF4A';
+										else if (val > q1) return '#FFC107';
+										else return '#FF7F00';   
+									}
+								}
+
+								// Apply colors based on the same logic as map fillKey
+								const colors = sorted.map(item => getColor(item.value));
+
+								// --- 🔹 Chart.js ---
+								Chart.register(ChartDataLabels);
+
+								window.barChartInstance = new Chart(ctx, {
+									type: 'bar',
+									data: {
+										labels: sortedLabels,
+										datasets: [{
+										label: 'Palay Production (metric tons)',
+										data: sortedValues,
+										backgroundColor: colors,
+										borderRadius: 2,
+										barThickness: 'flex',     // allow flexible sizing
+										barPercentage: 0.6,       // 🔹 smaller = thinner bars (default: 0.9)
+										categoryPercentage: 0.7,  // 🔹 smaller = more spacing between bars
+										}]
+									},
+									options: {
+										indexAxis: 'y',
+										responsive: true,
+										maintainAspectRatio: false,
+										layout: { padding: { right: 75 } },
+										scales: {
+										x: {
+											beginAtZero: true,
+											grid: { display: false },
+											title: { display: false, text: 'Metric Tons' }
+										},
+										y: {
+											grid: { display: false }
+										}
+										},
+										plugins: {
+											legend: { display: false },
+											tooltip: { enabled: true },
+											datalabels: {
+												align: 'right',
+												anchor: 'end',
+												clip: false,
+												color: '#000',
+												font: { weight: 'bold' },
+												formatter: (value) => {
+													const num = parseFloat(value);
+													if (isNaN(num)) return '';
+													return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+												}
+											}
+										}
+									},
+									plugins: [ChartDataLabels]
+								});
+
 
 							},
 							error: function (request, status, error) {
@@ -987,6 +1164,128 @@
 								$('#averageyield_label').html('Average Yield (' + selectedYear + ')');
 								$('#averageyield_value').html(averageYieldValue.toFixed(2));
 								$('#averageyield_unit').html('metric tons per hectare');
+
+
+
+								// ###################################### FOR BAR CHART 
+								const ctx = document.getElementById('barChart');
+
+								// Extract regions
+								const provinces = dbProvsMap.map(item => item.location_name);
+
+								// Extract numeric values
+								const values = dbProvsMap.map(item => parseFloat(item.value));
+
+								// Filter out invalid or zero values
+								const validData = dbProvsMap
+									.filter(item => item.value !== null && item.value !== undefined && parseFloat(item.value) > 0)
+									.map(item => ({ location: item.location_name, value: parseFloat(item.value) }));
+
+								// 🔹 Combine & sort (descending)
+								const sorted = validData.sort((a, b) => b.value - a.value);
+
+								const sortedLabels = sorted.map(item => item.location);
+								const sortedValues = sorted.map(item => item.value);
+
+								// 🔹 Declare quartile variables
+								let q1, q2, q3;
+
+								if (selectedLayer === 'yield') {
+									q1 = 3;
+									q2 = 4;
+									q3 = 5;
+									q4 = 6;
+								} else {
+									// --- 🔹 Quartile Calculation ---
+									const sortedArr = [...sortedValues].sort((a, b) => a - b);
+
+									q1 = quantile(sortedArr, 0.25);
+									q2 = quantile(sortedArr, 0.50);
+									q3 = quantile(sortedArr, 0.75);
+
+									q1 = dynamicRound(q1, 1);
+									q2 = dynamicRound(q2, 1);
+									q3 = dynamicRound(q3, 1);
+								}							
+
+								// --- 🔹 Assign colors based on quartile (pabaliktad) ---
+								function getColor(value) {
+									const val = parseFloat(value);
+									if (isNaN(val)) return '#D3D3D3'; // fallback for invalid numbers
+
+									if (selectedLayer === 'area_harvested') {
+										if (val > q3) return '#377EB8';
+										else if (val > q2) return '#66C2A5';
+										else if (val > q1) return '#FDD49E';
+										else return '#E78A1F';
+									} else if (selectedLayer === 'yield') {
+										if (val > q4) return '#B07AA1';
+										else if (val > q3) return '#3B93E4';
+										else if (val > q2) return '#29883E';
+										else if (val > q1) return '#FFF883';
+										else return '#F1A63C'; 
+									} else {
+										if (val > q3) return '#1F78B4';
+										else if (val > q2) return '#4DAF4A';
+										else if (val > q1) return '#FFC107';
+										else return '#FF7F00';   
+									}
+								}
+
+								// Apply colors based on the same logic as map fillKey
+								const colors = sorted.map(item => getColor(item.value));
+
+								// --- 🔹 Chart.js ---
+								Chart.register(ChartDataLabels);
+
+								window.barChartInstance = new Chart(ctx, {
+									type: 'bar',
+									data: {
+										labels: sortedLabels,
+										datasets: [{
+										label: 'Palay Production (metric tons)',
+										data: sortedValues,
+										backgroundColor: colors,
+										borderRadius: 2,
+										barThickness: '50',     // allow flexible sizing
+										barPercentage: 0.6,       // 🔹 smaller = thinner bars (default: 0.9)
+										categoryPercentage: 0.7,  // 🔹 smaller = more spacing between bars
+										}]
+									},
+									options: {
+										indexAxis: 'y',
+										responsive: true,
+										maintainAspectRatio: false,
+										layout: { padding: { right: 75 } },
+										scales: {
+										x: {
+											beginAtZero: true,
+											grid: { display: false },
+											title: { display: false, text: 'Metric Tons' }
+										},
+										y: {
+											grid: { display: false }
+										}
+										},
+										plugins: {
+										legend: { display: false },
+										tooltip: { enabled: true },
+										datalabels: {
+											align: 'right',
+											anchor: 'end',
+											clip: false,
+											color: '#000',
+											font: { weight: 'bold' },
+											formatter: (value) => {
+												const num = parseFloat(value);
+												if (isNaN(num)) return '';
+												return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+											}
+										}
+										}
+									},
+									plugins: [ChartDataLabels]
+								});
 
 							},
 							error: function (request, status, error) {
