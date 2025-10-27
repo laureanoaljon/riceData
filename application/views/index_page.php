@@ -14,6 +14,7 @@
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="<?php echo base_url(); ?>resources/leaflet.css"/>
+  
 
   <style>
 
@@ -126,7 +127,7 @@
 	.right-modal {
 		right: 20px;
 		width: 650px;
-		top: 20px;
+		top: 10px;
 		/* cursor: move; */
 		padding: 15px;
 	}
@@ -226,6 +227,18 @@
 	@keyframes spin {
 		0% { transform: rotate(0deg); }
 		100% { transform: rotate(360deg); }
+	}
+
+
+	/* FOR PAGINATION */
+
+	.small-pagination button {
+		font-size: 0.8rem;
+		line-height: 1;
+	}
+
+	.small-pagination span {
+		font-size: 0.8rem;
 	}
 
 
@@ -403,8 +416,22 @@
 			</div>
 
 			<div id="barchart-container" class="mt-0 mb-4">
-				<canvas id="barChart" style="width:100%; height:550px;"></canvas>
+				<!-- Plotly Bar Chart -->
+				<div id="barChart" style="width:100%; height: 500px;"></div>
+
+				<!-- Pagination (aligned right and compact) -->
+				<div class="d-flex justify-content-end align-items-center mt-2 me-2 small-pagination">
+					<button id="prevPage" class="btn btn-sm btn-outline-primary me-1 px-2 py-0">‹</button>
+					<span id="pageInfo" class="mx-1 small text-muted">Page 1</span>
+					<button id="nextPage" class="btn btn-sm btn-outline-primary px-2 py-0">›</button>
+				</div>
 			</div>
+
+			
+
+			<!-- <div id="barchart-container" class="mt-0 mb-4">
+				<canvas id="barChart" style="width:100%; height:550px;"></canvas>
+			</div> -->
 
 			<!-- <div class="pagination text-center mt-2">
 				<button id="prevPage" class="btn btn-sm btn-outline-primary">Previous</button>
@@ -433,8 +460,11 @@
 	<!-- Chart JS -->
 	<script src="<?php echo base_url(); ?>resources/chart.umd.min.js"></script>
 
-	<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+	<!-- Chart js datalabels plugin -->
+	<script src="<?php echo base_url(); ?>resources/chartjs-plugin-datalabels.min.js"></script>
 
+	<!-- Plotly -->
+	<script src="<?php echo base_url(); ?>resources/plotly-3.1.0.min.js"></script>
 
 	<!-- jQuery (must come before your script) -->
 	<script src="<?php echo base_url(); ?>resources/jquery-3.6.4.min.js"></script>
@@ -558,6 +588,7 @@
 		L.control.zoom({
 			position: 'bottomleft' // can be 'topleft', 'topright', 'bottomleft', or 'bottomright'
 		}).addTo(leaflet_map);
+
 
 		// Base map - CARTO Voyager (no labels)
 		L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
@@ -717,133 +748,143 @@
 							$('#averageyield_unit').html('metric tons per hectare');
 
 
+							// ############################ TO RENDER PLOTLY
+							renderPlotlyPAYBarChart(dbRegsMap, psgcCode, selectedPeriodText, selectedLayer, "regional");
 
+							// // ###################################### FOR BAR CHART 
+							// const ctx = document.getElementById('barChart');
 
-							// ###################################### FOR BAR CHART 
-							const ctx = document.getElementById('barChart');
+							// // Extract regions
+							// const regions = dbRegsMap.map(item => item.location_name);
 
-							// Extract regions
-							const regions = dbRegsMap.map(item => item.location_name);
+							// // Extract numeric values
+							// const values = dbRegsMap.map(item => parseFloat(item.value));
 
-							// Extract numeric values
-							const values = dbRegsMap.map(item => parseFloat(item.value));
+							// // Filter out invalid or zero values
+							// const validData = dbRegsMap
+							// 	.filter(item => item.value !== null && item.value !== undefined && parseFloat(item.value) > 0)
+							// 	.map(item => ({ region: item.location_name, value: parseFloat(item.value) }));
 
-							// Filter out invalid or zero values
-							const validData = dbRegsMap
-								.filter(item => item.value !== null && item.value !== undefined && parseFloat(item.value) > 0)
-								.map(item => ({ region: item.location_name, value: parseFloat(item.value) }));
+							// // 🔹 Combine & sort (descending)
+							// const sorted = validData.sort((a, b) => b.value - a.value);
 
-							// 🔹 Combine & sort (descending)
-							const sorted = validData.sort((a, b) => b.value - a.value);
+							// const sortedLabels = sorted.map(item => item.region);
+							// const sortedValues = sorted.map(item => item.value);
 
-							const sortedLabels = sorted.map(item => item.region);
-							const sortedValues = sorted.map(item => item.value);
+							// // 🔹 Declare quartile variables
+							// let q1, q2, q3;
 
-							// 🔹 Declare quartile variables
-							let q1, q2, q3;
+							// if (psgcCode === 'PHL' && selectedPeriodText === "Annual" && selectedLayer === 'production') {
+							// 	// Static quartiles for national annual map
+							// 	q1 = 500000;
+							// 	q2 = 1000000;
+							// 	q3 = 2000000;
+							// } else if (selectedLayer === 'yield') {
+							// 	q1 = 3;
+							// 	q2 = 4;
+							// 	q3 = 5;
+							// 	q4 = 6;
+							// } else {	
+							// 	// --- 🔹 Quartile Calculation ---
+							// 	const sortedArr = [...sortedValues].sort((a, b) => a - b);
 
-							if (psgcCode === 'PHL' && selectedPeriodText === "Annual" && selectedLayer === 'production') {
-								// Static quartiles for national annual map
-								q1 = 500000;
-								q2 = 1000000;
-								q3 = 2000000;
-							} else if (selectedLayer === 'yield') {
-								q1 = 3;
-								q2 = 4;
-								q3 = 5;
-								q4 = 6;
-							} else {	
-								// --- 🔹 Quartile Calculation ---
-								const sortedArr = [...sortedValues].sort((a, b) => a - b);
+							// 	q1 = quantile(sortedArr, 0.25);
+							// 	q2 = quantile(sortedArr, 0.50);
+							// 	q3 = quantile(sortedArr, 0.75);
 
-								q1 = quantile(sortedArr, 0.25);
-								q2 = quantile(sortedArr, 0.50);
-								q3 = quantile(sortedArr, 0.75);
+							// 	q1 = dynamicRound(q1, 1);
+							// 	q2 = dynamicRound(q2, 1);
+							// 	q3 = dynamicRound(q3, 1);
+							// }
+					
+							// let labelUnit;
+							// if (selectedLayer === 'area_harvested') {
+							// 	labelUnit = 'Area Harvested (hectares)';
+							// } else if (selectedLayer === 'yield') {
+							// 	labelUnit = 'Average Yield (metric tons per hectare)';
+							// } else {
+							// 	labelUnit = 'Palay Production (metric tons)';
+							// }
 
-								q1 = dynamicRound(q1, 1);
-								q2 = dynamicRound(q2, 1);
-								q3 = dynamicRound(q3, 1);
-							}
+							// // --- 🔹 Assign colors based on quartile (pabaliktad) ---
+							// function getColor(value) {
+							// 	const val = parseFloat(value);
+							// 	if (isNaN(val)) return '#D3D3D3'; // Default color for invalid values
 
-							// --- 🔹 Assign colors based on quartile (pabaliktad) ---
-							function getColor(value) {
-								const val = parseFloat(value);
-								if (isNaN(val)) return '#D3D3D3'; // Default color for invalid values
+							// 	if (selectedLayer === 'area_harvested') {
+							// 		if (val > q3) return '#377EB8';
+							// 		else if (val > q2) return '#66C2A5';
+							// 		else if (val > q1) return '#FDD49E';
+							// 		else return '#E78A1F';
+							// 	} else if (selectedLayer === 'yield') {
+							// 		if (val > q4) return '#B07AA1';
+							// 		else if (val > q3) return '#3B93E4';
+							// 		else if (val > q2) return '#29883E';
+							// 		else if (val > q1) return '#FFF883';
+							// 		else return '#F1A63C'; 
+							// 	} else {
+							// 		if (val > q3) return '#1F78B4';
+							// 		else if (val > q2) return '#4DAF4A';
+							// 		else if (val > q1) return '#FFC107';
+							// 		else return '#FF7F00';   
+							// 	}
 
-								if (selectedLayer === 'area_harvested') {
-									if (val > q3) return '#377EB8';
-									else if (val > q2) return '#66C2A5';
-									else if (val > q1) return '#FDD49E';
-									else return '#E78A1F';
-								} else if (selectedLayer === 'yield') {
-									if (val > q4) return '#B07AA1';
-									else if (val > q3) return '#3B93E4';
-									else if (val > q2) return '#29883E';
-									else if (val > q1) return '#FFF883';
-									else return '#F1A63C'; 
-								} else {
-									if (val > q3) return '#1F78B4';
-									else if (val > q2) return '#4DAF4A';
-									else if (val > q1) return '#FFC107';
-									else return '#FF7F00';   
-								}
+							// }
 
-							}
+							// // Apply colors based on the same logic as map fillKey
+							// const colors = sorted.map(item => getColor(item.value));
 
-							// Apply colors based on the same logic as map fillKey
-							const colors = sorted.map(item => getColor(item.value));
+							// // --- 🔹 Chart.js ---
+							// Chart.register(ChartDataLabels);
 
-							// --- 🔹 Chart.js ---
-							Chart.register(ChartDataLabels);
-
-							window.barChartInstance = new Chart(ctx, {
-								type: 'bar',
-								data: {
-									labels: sortedLabels,
-									datasets: [{
-									label: 'Palay Production (metric tons)',
-									data: sortedValues,
-									backgroundColor: colors,
-									borderRadius: 2,
-									barThickness: '20',     // allow flexible sizing
-								barPercentage: 0.6,       // 🔹 smaller = thinner bars (default: 0.9)
-								categoryPercentage: 0.7,  // 🔹 smaller = more spacing between bars
-									}]
-								},
-								options: {
-									indexAxis: 'y',
-									responsive: true,
-									maintainAspectRatio: false,
-									layout: { padding: { right: 75 } },
-									scales: {
-									x: {
-										beginAtZero: true,
-										grid: { display: false },
-										title: { display: false, text: 'Metric Tons' }
-									},
-									y: {
-										grid: { display: false }
-									}
-									},
-									plugins: {
-									legend: { display: false },
-									tooltip: { enabled: true },
-									datalabels: {
-										align: 'right',
-										anchor: 'end',
-										clip: false,
-										color: '#000',
-										font: { weight: 'bold' },
-										formatter: (value) => {
-											const num = parseFloat(value);
-											if (isNaN(num)) return '';
-											return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-										}
-									}
-									}
-								},
-								plugins: [ChartDataLabels]
-							});
+							// window.barChartInstance = new Chart(ctx, {
+							// 	type: 'bar',
+							// 	data: {
+							// 		labels: sortedLabels,
+							// 		datasets: [{
+							// 		label: labelUnit,
+							// 		data: sortedValues,
+							// 		backgroundColor: colors,
+							// 		borderRadius: 2,
+							// 		barThickness: '20',     // allow flexible sizing
+							// 	barPercentage: 0.6,       // 🔹 smaller = thinner bars (default: 0.9)
+							// 	categoryPercentage: 0.7,  // 🔹 smaller = more spacing between bars
+							// 		}]
+							// 	},
+							// 	options: {
+							// 		indexAxis: 'y',
+							// 		responsive: true,
+							// 		maintainAspectRatio: false,
+							// 		layout: { padding: { right: 75 } },
+							// 		scales: {
+							// 		x: {
+							// 			beginAtZero: true,
+							// 			grid: { display: false },
+							// 			title: { display: false, text: 'Metric Tons' }
+							// 		},
+							// 		y: {
+							// 			grid: { display: false }
+							// 		}
+							// 		},
+							// 		plugins: {
+							// 		legend: { display: false },
+							// 		tooltip: { enabled: true },
+							// 		datalabels: {
+							// 			align: 'right',
+							// 			anchor: 'end',
+							// 			clip: false,
+							// 			color: '#000',
+							// 			font: { weight: 'bold' },
+							// 			formatter: (value) => {
+							// 				const num = parseFloat(value);
+							// 				if (isNaN(num)) return '';
+							// 				return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+							// 			}
+							// 		}
+							// 		}
+							// 	},
+							// 	plugins: [ChartDataLabels]
+							// });
 
 						},
 						error: function (request, status, error) {
@@ -945,125 +986,139 @@
 
 
 
-								// ###################################### FOR BAR CHART 
-								const ctx = document.getElementById('barChart');
+								// ############################ TO RENDER PLOTLY
+								renderPlotlyPAYBarChart(dbMuniMap, psgcCode, selectedPeriodText, selectedLayer, "municipal");
 
-								// Extract municipalities
-								const municipalities = dbMuniMap.map(item => item.location_name);
 
-								// Extract numeric values
-								const values = dbMuniMap.map(item => parseFloat(item.value));
 
-								// Filter out invalid or zero values
-								const validData = dbMuniMap
-									.filter(item => item.value !== null && item.value !== undefined && parseFloat(item.value) > 0)
-									.map(item => ({ location: item.location_name.replace(/\\n/g, ', ').trim(), value: parseFloat(item.value) }));
+								// // ###################################### FOR BAR CHART 
+								// const ctx = document.getElementById('barChart');
 
-								// 🔹 Combine & sort (descending)
-								const sorted = validData.sort((a, b) => b.value - a.value);
+								// // Extract municipalities
+								// const municipalities = dbMuniMap.map(item => item.location_name);
 
-								const sortedLabels = sorted.map(item => item.location);
-								const sortedValues = sorted.map(item => item.value);
+								// // Extract numeric values
+								// const values = dbMuniMap.map(item => parseFloat(item.value));
 
-								// 🔹 Declare quartile variables
-								let q1, q2, q3;
+								// // Filter out invalid or zero values
+								// const validData = dbMuniMap
+								// 	.filter(item => item.value !== null && item.value !== undefined && parseFloat(item.value) > 0)
+								// 	.map(item => ({ location: item.location_name.replace(/\\n/g, ', ').trim(), value: parseFloat(item.value) }));
 
-								if (selectedLayer === 'yield') {
-									q1 = 3;
-									q2 = 4;
-									q3 = 5;
-									q4 = 6;
-								} else {
-									// --- 🔹 Quartile Calculation ---
-									const sortedArr = [...sortedValues].sort((a, b) => a - b);
+								// // 🔹 Combine & sort (descending)
+								// const sorted = validData.sort((a, b) => b.value - a.value);
 
-									q1 = quantile(sortedArr, 0.25);
-									q2 = quantile(sortedArr, 0.50);
-									q3 = quantile(sortedArr, 0.75);
+								// const sortedLabels = sorted.map(item => item.location);
+								// const sortedValues = sorted.map(item => item.value);
 
-									q1 = dynamicRound(q1, 1);
-									q2 = dynamicRound(q2, 1);
-									q3 = dynamicRound(q3, 1);
-								}							
+								// // 🔹 Declare quartile variables
+								// let q1, q2, q3;
 
-								// --- 🔹 Assign colors based on quartile (pabaliktad) ---
-								function getColor(value) {
-									const val = parseFloat(value);
-									if (isNaN(val)) return '#D3D3D3'; // fallback for invalid numbers
+								// if (selectedLayer === 'yield') {
+								// 	q1 = 3;
+								// 	q2 = 4;
+								// 	q3 = 5;
+								// 	q4 = 6;
+								// } else {
+								// 	// --- 🔹 Quartile Calculation ---
+								// 	const sortedArr = [...sortedValues].sort((a, b) => a - b);
 
-									if (selectedLayer === 'area_harvested') {
-										if (val > q3) return '#377EB8';
-										else if (val > q2) return '#66C2A5';
-										else if (val > q1) return '#FDD49E';
-										else return '#E78A1F';
-									} else if (selectedLayer === 'yield') {
-										if (val > q4) return '#B07AA1';
-										else if (val > q3) return '#3B93E4';
-										else if (val > q2) return '#29883E';
-										else if (val > q1) return '#FFF883';
-										else return '#F1A63C'; 
-									} else {
-										if (val > q3) return '#1F78B4';
-										else if (val > q2) return '#4DAF4A';
-										else if (val > q1) return '#FFC107';
-										else return '#FF7F00';   
-									}
-								}
+								// 	q1 = quantile(sortedArr, 0.25);
+								// 	q2 = quantile(sortedArr, 0.50);
+								// 	q3 = quantile(sortedArr, 0.75);
 
-								// Apply colors based on the same logic as map fillKey
-								const colors = sorted.map(item => getColor(item.value));
+								// 	q1 = dynamicRound(q1, 1);
+								// 	q2 = dynamicRound(q2, 1);
+								// 	q3 = dynamicRound(q3, 1);
+								// }		
+								
+								// let labelUnit;
+								// if (selectedLayer === 'area_harvested') {
+								// 	labelUnit = 'Area Harvested (hectares)';
+								// } else if (selectedLayer === 'yield') {
+								// 	labelUnit = 'Average Yield (metric tons per hectare)';
+								// } else {
+								// 	labelUnit = 'Palay Production (metric tons)';
+								// }
 
-								// --- 🔹 Chart.js ---
-								Chart.register(ChartDataLabels);
+								// // --- 🔹 Assign colors based on quartile (pabaliktad) ---
+								// function getColor(value) {
+								// 	const val = parseFloat(value);
+								// 	if (isNaN(val)) return '#D3D3D3'; // fallback for invalid numbers
 
-								window.barChartInstance = new Chart(ctx, {
-									type: 'bar',
-									data: {
-										labels: sortedLabels,
-										datasets: [{
-										label: 'Palay Production (metric tons)',
-										data: sortedValues,
-										backgroundColor: colors,
-										borderRadius: 2,
-										barThickness: 'flex',     // allow flexible sizing
-										barPercentage: 0.6,       // 🔹 smaller = thinner bars (default: 0.9)
-										categoryPercentage: 0.7,  // 🔹 smaller = more spacing between bars
-										}]
-									},
-									options: {
-										indexAxis: 'y',
-										responsive: true,
-										maintainAspectRatio: false,
-										layout: { padding: { right: 75 } },
-										scales: {
-										x: {
-											beginAtZero: true,
-											grid: { display: false },
-											title: { display: false, text: 'Metric Tons' }
-										},
-										y: {
-											grid: { display: false }
-										}
-										},
-										plugins: {
-											legend: { display: false },
-											tooltip: { enabled: true },
-											datalabels: {
-												align: 'right',
-												anchor: 'end',
-												clip: false,
-												color: '#000',
-												font: { weight: 'bold' },
-												formatter: (value) => {
-													const num = parseFloat(value);
-													if (isNaN(num)) return '';
-													return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-												}
-											}
-										}
-									},
-									plugins: [ChartDataLabels]
-								});
+								// 	if (selectedLayer === 'area_harvested') {
+								// 		if (val > q3) return '#377EB8';
+								// 		else if (val > q2) return '#66C2A5';
+								// 		else if (val > q1) return '#FDD49E';
+								// 		else return '#E78A1F';
+								// 	} else if (selectedLayer === 'yield') {
+								// 		if (val > q4) return '#B07AA1';
+								// 		else if (val > q3) return '#3B93E4';
+								// 		else if (val > q2) return '#29883E';
+								// 		else if (val > q1) return '#FFF883';
+								// 		else return '#F1A63C'; 
+								// 	} else {
+								// 		if (val > q3) return '#1F78B4';
+								// 		else if (val > q2) return '#4DAF4A';
+								// 		else if (val > q1) return '#FFC107';
+								// 		else return '#FF7F00';   
+								// 	}
+								// }
+
+								// // Apply colors based on the same logic as map fillKey
+								// const colors = sorted.map(item => getColor(item.value));
+
+								// // --- 🔹 Chart.js ---
+								// Chart.register(ChartDataLabels);
+
+								// window.barChartInstance = new Chart(ctx, {
+								// 	type: 'bar',
+								// 	data: {
+								// 		labels: sortedLabels,
+								// 		datasets: [{
+								// 		label: labelUnit,
+								// 		data: sortedValues,
+								// 		backgroundColor: colors,
+								// 		borderRadius: 2,
+								// 		barThickness: 'flex',     // allow flexible sizing
+								// 		barPercentage: 0.6,       // 🔹 smaller = thinner bars (default: 0.9)
+								// 		categoryPercentage: 0.7,  // 🔹 smaller = more spacing between bars
+								// 		}]
+								// 	},
+								// 	options: {
+								// 		indexAxis: 'y',
+								// 		responsive: true,
+								// 		maintainAspectRatio: false,
+								// 		layout: { padding: { right: 75 } },
+								// 		scales: {
+								// 		x: {
+								// 			beginAtZero: true,
+								// 			grid: { display: false },
+								// 			title: { display: false, text: 'Metric Tons' }
+								// 		},
+								// 		y: {
+								// 			grid: { display: false }
+								// 		}
+								// 		},
+								// 		plugins: {
+								// 			legend: { display: false },
+								// 			tooltip: { enabled: true },
+								// 			datalabels: {
+								// 				align: 'right',
+								// 				anchor: 'end',
+								// 				clip: false,
+								// 				color: '#000',
+								// 				font: { weight: 'bold' },
+								// 				formatter: (value) => {
+								// 					const num = parseFloat(value);
+								// 					if (isNaN(num)) return '';
+								// 					return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+								// 				}
+								// 			}
+								// 		}
+								// 	},
+								// 	plugins: [ChartDataLabels]
+								// });
 
 
 							},
@@ -1167,125 +1222,137 @@
 
 
 
-								// ###################################### FOR BAR CHART 
-								const ctx = document.getElementById('barChart');
+								// ############################ TO RENDER PLOTLY
+								renderPlotlyPAYBarChart(dbProvsMap, psgcCode, selectedPeriodText, selectedLayer, "provincial");
 
-								// Extract regions
-								const provinces = dbProvsMap.map(item => item.location_name);
+								// // ###################################### FOR BAR CHART 
+								// const ctx = document.getElementById('barChart');
 
-								// Extract numeric values
-								const values = dbProvsMap.map(item => parseFloat(item.value));
+								// // Extract regions
+								// const provinces = dbProvsMap.map(item => item.location_name);
 
-								// Filter out invalid or zero values
-								const validData = dbProvsMap
-									.filter(item => item.value !== null && item.value !== undefined && parseFloat(item.value) > 0)
-									.map(item => ({ location: item.location_name, value: parseFloat(item.value) }));
+								// // Extract numeric values
+								// const values = dbProvsMap.map(item => parseFloat(item.value));
 
-								// 🔹 Combine & sort (descending)
-								const sorted = validData.sort((a, b) => b.value - a.value);
+								// // Filter out invalid or zero values
+								// const validData = dbProvsMap
+								// 	.filter(item => item.value !== null && item.value !== undefined && parseFloat(item.value) > 0)
+								// 	.map(item => ({ location: item.location_name, value: parseFloat(item.value) }));
 
-								const sortedLabels = sorted.map(item => item.location);
-								const sortedValues = sorted.map(item => item.value);
+								// // 🔹 Combine & sort (descending)
+								// const sorted = validData.sort((a, b) => b.value - a.value);
 
-								// 🔹 Declare quartile variables
-								let q1, q2, q3;
+								// const sortedLabels = sorted.map(item => item.location);
+								// const sortedValues = sorted.map(item => item.value);
 
-								if (selectedLayer === 'yield') {
-									q1 = 3;
-									q2 = 4;
-									q3 = 5;
-									q4 = 6;
-								} else {
-									// --- 🔹 Quartile Calculation ---
-									const sortedArr = [...sortedValues].sort((a, b) => a - b);
+								// // 🔹 Declare quartile variables
+								// let q1, q2, q3;
 
-									q1 = quantile(sortedArr, 0.25);
-									q2 = quantile(sortedArr, 0.50);
-									q3 = quantile(sortedArr, 0.75);
+								// if (selectedLayer === 'yield') {
+								// 	q1 = 3;
+								// 	q2 = 4;
+								// 	q3 = 5;
+								// 	q4 = 6;
+								// } else {
+								// 	// --- 🔹 Quartile Calculation ---
+								// 	const sortedArr = [...sortedValues].sort((a, b) => a - b);
 
-									q1 = dynamicRound(q1, 1);
-									q2 = dynamicRound(q2, 1);
-									q3 = dynamicRound(q3, 1);
-								}							
+								// 	q1 = quantile(sortedArr, 0.25);
+								// 	q2 = quantile(sortedArr, 0.50);
+								// 	q3 = quantile(sortedArr, 0.75);
 
-								// --- 🔹 Assign colors based on quartile (pabaliktad) ---
-								function getColor(value) {
-									const val = parseFloat(value);
-									if (isNaN(val)) return '#D3D3D3'; // fallback for invalid numbers
+								// 	q1 = dynamicRound(q1, 1);
+								// 	q2 = dynamicRound(q2, 1);
+								// 	q3 = dynamicRound(q3, 1);
+								// }		
+								
+								// let labelUnit;
+								// if (selectedLayer === 'area_harvested') {
+								// 	labelUnit = 'Area Harvested (hectares)';
+								// } else if (selectedLayer === 'yield') {
+								// 	labelUnit = 'Average Yield (metric tons per hectare)';
+								// } else {
+								// 	labelUnit = 'Palay Production (metric tons)';
+								// }
 
-									if (selectedLayer === 'area_harvested') {
-										if (val > q3) return '#377EB8';
-										else if (val > q2) return '#66C2A5';
-										else if (val > q1) return '#FDD49E';
-										else return '#E78A1F';
-									} else if (selectedLayer === 'yield') {
-										if (val > q4) return '#B07AA1';
-										else if (val > q3) return '#3B93E4';
-										else if (val > q2) return '#29883E';
-										else if (val > q1) return '#FFF883';
-										else return '#F1A63C'; 
-									} else {
-										if (val > q3) return '#1F78B4';
-										else if (val > q2) return '#4DAF4A';
-										else if (val > q1) return '#FFC107';
-										else return '#FF7F00';   
-									}
-								}
+								// // --- 🔹 Assign colors based on quartile (pabaliktad) ---
+								// function getColor(value) {
+								// 	const val = parseFloat(value);
+								// 	if (isNaN(val)) return '#D3D3D3'; // fallback for invalid numbers
 
-								// Apply colors based on the same logic as map fillKey
-								const colors = sorted.map(item => getColor(item.value));
+								// 	if (selectedLayer === 'area_harvested') {
+								// 		if (val > q3) return '#377EB8';
+								// 		else if (val > q2) return '#66C2A5';
+								// 		else if (val > q1) return '#FDD49E';
+								// 		else return '#E78A1F';
+								// 	} else if (selectedLayer === 'yield') {
+								// 		if (val > q4) return '#B07AA1';
+								// 		else if (val > q3) return '#3B93E4';
+								// 		else if (val > q2) return '#29883E';
+								// 		else if (val > q1) return '#FFF883';
+								// 		else return '#F1A63C'; 
+								// 	} else {
+								// 		if (val > q3) return '#1F78B4';
+								// 		else if (val > q2) return '#4DAF4A';
+								// 		else if (val > q1) return '#FFC107';
+								// 		else return '#FF7F00';   
+								// 	}
+								// }
 
-								// --- 🔹 Chart.js ---
-								Chart.register(ChartDataLabels);
+								// // Apply colors based on the same logic as map fillKey
+								// const colors = sorted.map(item => getColor(item.value));
 
-								window.barChartInstance = new Chart(ctx, {
-									type: 'bar',
-									data: {
-										labels: sortedLabels,
-										datasets: [{
-										label: 'Palay Production (metric tons)',
-										data: sortedValues,
-										backgroundColor: colors,
-										borderRadius: 2,
-										barThickness: '50',     // allow flexible sizing
-										barPercentage: 0.6,       // 🔹 smaller = thinner bars (default: 0.9)
-										categoryPercentage: 0.7,  // 🔹 smaller = more spacing between bars
-										}]
-									},
-									options: {
-										indexAxis: 'y',
-										responsive: true,
-										maintainAspectRatio: false,
-										layout: { padding: { right: 75 } },
-										scales: {
-										x: {
-											beginAtZero: true,
-											grid: { display: false },
-											title: { display: false, text: 'Metric Tons' }
-										},
-										y: {
-											grid: { display: false }
-										}
-										},
-										plugins: {
-										legend: { display: false },
-										tooltip: { enabled: true },
-										datalabels: {
-											align: 'right',
-											anchor: 'end',
-											clip: false,
-											color: '#000',
-											font: { weight: 'bold' },
-											formatter: (value) => {
-												const num = parseFloat(value);
-												if (isNaN(num)) return '';
-												return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-											}
-										}
-										}
-									},
-									plugins: [ChartDataLabels]
-								});
+								// // --- 🔹 Chart.js ---
+								// Chart.register(ChartDataLabels);
+
+								// window.barChartInstance = new Chart(ctx, {
+								// 	type: 'bar',
+								// 	data: {
+								// 		labels: sortedLabels,
+								// 		datasets: [{
+								// 		label: labelUnit,
+								// 		data: sortedValues,
+								// 		backgroundColor: colors,
+								// 		borderRadius: 2,
+								// 		barThickness: '50',     // allow flexible sizing
+								// 		barPercentage: 0.6,       // 🔹 smaller = thinner bars (default: 0.9)
+								// 		categoryPercentage: 0.7,  // 🔹 smaller = more spacing between bars
+								// 		}]
+								// 	},
+								// 	options: {
+								// 		indexAxis: 'y',
+								// 		responsive: true,
+								// 		maintainAspectRatio: false,
+								// 		layout: { padding: { right: 75 } },
+								// 		scales: {
+								// 		x: {
+								// 			beginAtZero: true,
+								// 			grid: { display: false },
+								// 			title: { display: false, text: 'Metric Tons' }
+								// 		},
+								// 		y: {
+								// 			grid: { display: false }
+								// 		}
+								// 		},
+								// 		plugins: {
+								// 		legend: { display: false },
+								// 		tooltip: { enabled: true },
+								// 		datalabels: {
+								// 			align: 'right',
+								// 			anchor: 'end',
+								// 			clip: false,
+								// 			color: '#000',
+								// 			font: { weight: 'bold' },
+								// 			formatter: (value) => {
+								// 				const num = parseFloat(value);
+								// 				if (isNaN(num)) return '';
+								// 				return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+								// 			}
+								// 		}
+								// 		}
+								// 	},
+								// 	plugins: [ChartDataLabels]
+								// });
 
 							},
 							error: function (request, status, error) {
@@ -1321,6 +1388,205 @@
 		// document.getElementById('rightBtn').addEventListener('click', () => {
 		// 	alert('Right modal button clicked!');
 		// });
+
+
+
+		// PLOTLY BARCHART for PAY (Production, Area Harv and Yield)
+		function renderPlotlyPAYBarChart(dbData, psgcCode = null, periodText, layer, geoboundary) {
+			const sortedData = dbData
+				.filter(item => item.value !== null && item.value !== undefined && parseFloat(item.value) > 0)
+				.map(item => ({
+					location: item.location_name.replace(/\\n/g, ', ').trim(),
+					value: parseFloat(item.value)
+				}))
+				.sort((a, b) => b.value - a.value);
+
+			const forPagination = geoboundary === "municipal";
+
+			// Pagination setup
+			// Pagination setup
+			let currentPage = 1;
+			let itemsPerPage;
+			let totalPages;
+
+			if (forPagination) {
+				itemsPerPage = 12;
+				totalPages = Math.ceil(sortedData.length / itemsPerPage);
+			} else {
+				itemsPerPage = sortedData.length; // ✅ fixed typo
+				totalPages = 1;
+			}
+			
+			const allValues = sortedData.map(d => d.value);
+
+			let q1, q2, q3, q4;
+
+			if (psgcCode === 'PHL' && periodText === "Annual" && layer === 'production') {
+				q1 = 500000; q2 = 1000000; q3 = 2000000;
+			} else if (layer === 'yield') {
+				q1 = 3; q2 = 4; q3 = 5; q4 = 6;
+			} else {
+				const sortedArr = [...allValues].sort((a, b) => a - b);
+				q1 = dynamicRound(quantile(sortedArr, 0.25), 1);
+				q2 = dynamicRound(quantile(sortedArr, 0.50), 1);
+				q3 = dynamicRound(quantile(sortedArr, 0.75), 1);
+			}
+
+			let unit;
+			let titleLabel;
+
+			if (layer === "production"){
+				unit = "mt";
+				titleLabel = 'Palay Production';
+			} else if (layer === "yield"){
+				unit = "mt/ha";
+				titleLabel = 'Average Yield';
+			} else if (layer === "area_harvested"){
+				unit = "ha";
+				titleLabel = 'Areah Harvested';
+			}
+
+			// ===================================================
+			// 🔹 Color Logic (reused per page)
+			// ===================================================
+			function getColor(value) {
+				const val = parseFloat(value);
+				if (isNaN(val)) return '#D3D3D3';
+
+				if (layer === 'area_harvested') {
+					if (val > q3) return '#377EB8';
+					else if (val > q2) return '#66C2A5';
+					else if (val > q1) return '#FDD49E';
+					else return '#E78A1F';
+				} else if (layer === 'yield') {
+					if (val > q4) return '#B07AA1';
+					else if (val > q3) return '#3B93E4';
+					else if (val > q2) return '#29883E';
+					else if (val > q1) return '#FFF883';
+					else return '#F1A63C';
+				} else {
+					if (val > q3) return '#1F78B4';
+					else if (val > q2) return '#4DAF4A';
+					else if (val > q1) return '#FFC107';
+					else return '#FF7F00';
+				}
+			}
+
+			// Compute the global max only once (outside drawPage)
+			const globalMax = Math.max(...sortedData.map(d => d.value));
+
+			// ===================================================
+			// 🔹 Draw a Single Page
+			// ===================================================
+			function drawPage(page) {
+				const start = (page - 1) * itemsPerPage;
+				const end = start + itemsPerPage;
+				const pageData = sortedData.slice(start, end);
+
+				const sortedLabels = pageData.map(d => d.location);
+				const sortedValues = pageData.map(d => d.value);
+				const colors = sortedValues.map(v => getColor(v));
+
+				const trace = {
+					type: 'bar',         		// Chart type: horizontal bar
+					x: sortedValues,     		// X-axis values (numeric data)
+					y: sortedLabels,     		// Y-axis labels (locations)
+					orientation: 'h',    		// Horizontal bars
+					text: sortedValues.map(v =>
+						v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+					),                   		// Format values as text with 2 decimals
+					textposition: 'outside', 	// Place value labels outside bars
+					cliponaxis: false,			// Allow text to overflow outside chart area
+					marker: { 
+						color: colors, 			// Apply bar colors based on value range
+						line: { width: 1, color: '#fff' } // White border for separation
+					},							
+					hovertemplate: '%{y}<br>%{x:,.2f} ' + unit + '<extra></extra>' // Tooltip format on hover
+				};
+
+				const layout = {
+					title: '',
+					margin: { l: 100, r: 90, t: 30, b: 30 },// Chart margins (left/right/top/bottom)
+					xaxis: { 
+						showgrid: false, 					// Hide background grid lines
+						title: { text: '', standoff: 0 },	// No x-axis title
+						range: [0, globalMax], 				// ✅ Fix x-axis range to global max
+					},
+					yaxis: { 
+						automargin: true, 					// Adjust margins dynamically for long labels
+						showgrid: false, 					// Hide grid lines on y-axis
+						autorange: 'reversed' 				// Reverse bar order (top = highest)
+					},
+					barmode: 'group' 						// Standard bar mode (no stacking)
+				};
+
+				// var icon1 = {
+				// 	'width': 500,
+				// 	'height': 600,
+				// 	'path': 'M224 512c35.32 0 63.97-28.65 63.97-64H160.03c0 35.35 28.65 64 63.97 64zm215.39-149.71c-19.32-20.76-55.47-51.99-55.47-154.29 0-77.7-54.48-139.9-127.94-155.16V32c0-17.67-14.32-32-31.98-32s-31.98 14.33-31.98 32v20.84C118.56 68.1 64.08 130.3 64.08 208c0 102.3-36.15 133.53-55.47 154.29-6 6.45-8.66 14.16-8.61 21.71.11 16.4 12.98 32 32.1 32h383.8c19.12 0 32-15.6 32.1-32 .05-7.55-2.61-15.27-8.61-21.71z'
+				// }
+
+				const config = {
+					responsive: true,
+					displayModeBar: true,	// modebar always visible
+					displaylogo: false, 
+					modeBarButtons: [['zoomIn2d', 'zoomOut2d', 'resetScale2d', 'toImage']],
+					// scrollZoom: true, 	// can scrollable
+					// editable: true, 		// can edit title and x&y axis text title
+					// staticPlot: true 	// Static, not interactive, no buttons
+					toImageButtonOptions: { // Customize Download
+						format: 'png', // one of png, svg, jpeg, webp
+						filename: titleLabel,
+						height: 500,
+						width: 700,
+						scale: 1 // Multiply title/legend/axis/canvas sizes by this factor
+					},
+					// modeBarButtonsToAdd: [ // add pre defined buttons
+					// 	{
+					// 	name: 'color toggler',
+					// 	icon: icon1,
+					// 	click: function(gd) {
+					// 		var newColor = colors[Math.floor(3 * Math.random())]
+					// 		Plotly.restyle(gd, 'line.color', newColor)
+					// 	}},
+					// 	{
+					// 	name: 'button1',
+					// 	icon: Plotly.Icons.pencil,
+					// 	direction: 'up',
+					// 	click: function(gd) {alert('button1')
+					// 	}}
+					// ],
+					// showLink: true,
+					// plotlyServerURL: "https://chart-studio.plotly.com",
+					// linkText: 'This text is custom!'
+				};
+
+				// Graph Creation
+				Plotly.newPlot('barChart', [trace], layout, config);
+
+				document.getElementById('pageInfo').textContent = `Page ${page} of ${totalPages}`;
+			}
+
+			// Initial render
+			drawPage(currentPage);
+
+			// Pagination controls
+			document.getElementById('prevPage').onclick = function () {
+				if (currentPage > 1) {
+					currentPage--;
+					drawPage(currentPage);
+				}
+			};
+			document.getElementById('nextPage').onclick = function () {
+				if (currentPage < totalPages) {
+					currentPage++;
+					drawPage(currentPage);
+				}
+			};
+		}
+
+
+
 
 
 		// Dynamically decide the rounding factor based on the values

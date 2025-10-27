@@ -105,7 +105,8 @@
 
     <div class="row mt-2">
         <!-- Button 2 -->
-        <button class="btn btn-success action-button d-flex align-items-center justify-content-between w-100" id="load_pad">
+         <!-- remove d-none to show -->
+        <button class="btn btn-success action-button d-flex align-items-center justify-content-between w-100 d-none" id="load_pad">
             <div class="d-flex align-items-center">
                 <div class="icon-container text-white me-2"><i class="fa fa-area-chart"></i></div>
                 <div class="text-container">Production and Demand</div>

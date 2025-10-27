@@ -41,4 +41,11 @@ class Main extends CI_Controller {
 
 		$this->load->view('index_page', $data);
 	}
+
+
+    public function plotly()
+	{
+
+		$this->load->view('plotly');
+	}
 }

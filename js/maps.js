@@ -58,6 +58,154 @@ function resetSlider() {
     }
 }
 
+// function renderProductionMap(mapType, dbData, locationCoordinatesData, periodText = null) {
+
+//     resetSlider();
+
+//     // --- Color setup ---
+//     const heatmapColors = {
+//         firsQ: { color: '#FF7F00' },
+//         secoQ: { color: '#FFC107' },
+//         thirQ: { color: '#4DAF4A' },
+//         fourQ: { color: '#1F78B4' },
+//         defaultFill: { color: 'rgba(165,215,224)' }
+//     };
+
+//     // --- Data filtering ---
+//     const validData = dbData.filter(item => item.value !== null && item.value !== undefined && item.value !== '0');
+//     if (!validData.length) return console.warn("No valid data to display.");
+
+//     let q1, q2, q3;
+
+//     if (mapType === 'regional' && periodText === "Annual") {
+//         q1 = 500000;
+//         q2 = 1000000;
+//         q3 = 2000000;
+//     } else {
+
+//         // --- Quartile calculations ---
+//         const values = validData.map(item => parseFloat(item.value));
+//         q1 = quantile(values, 0.25);
+//         q2 = quantile(values, 0.50);
+//         q3 = quantile(values, 0.75);
+
+//         q1 = dynamicRound(q1, 1);
+//         q2 = dynamicRound(q2, 1);
+//         q3 = dynamicRound(q3, 1);
+//     }
+
+//     // --- Legend setup ---
+//     const scales = [
+//         { minValue: q1 },
+//         { minValue: q2 },
+//         { minValue: q3 },
+//     ];
+
+//     const colors = ['#FF7F00', '#FFD92F', '#4DAF4A', '#1F78B4'];
+//     $('.legend-box').each(function (i) {
+//         $(this).css('background', colors[i]);
+//     });
+
+//     $('#series-1').html("≤ " + numberWithCommas(scales[0].minValue));
+//     $('#series-2').html("> " + numberWithCommas(scales[0].minValue) + " to " + numberWithCommas(scales[1].minValue));
+//     $('#series-3').html("> " + numberWithCommas(scales[1].minValue) + " to " + numberWithCommas(scales[2].minValue));
+//     $('#series-4').html("> " + numberWithCommas(scales[2].minValue));
+
+//     // --- Map data prep ---
+//     const totalValue = validData.reduce((acc, d) => acc + parseFloat(d.value), 0);
+//     const mapData = {};
+
+//     validData.forEach(item => {
+//         const val = parseFloat(item.value);
+//         const perc = (val / totalValue) * 100;
+//         const fillKey =
+//             val > q3 ? 'fourQ' :
+//                 val > q2 ? 'thirQ' :
+//                     val > q1 ? 'secoQ' : 'firsQ';
+
+//         mapData[item.psgcCode] = {
+//             Location_name: item.location_name,
+//             Year: item.year,
+//             Value: (val < 1 ? val.toFixed(2) : Math.round(val)).toLocaleString(),
+//             fillKey,
+//             Percentage: perc.toFixed(2)
+//         };
+//     });
+
+//     console.log(mapData);
+
+//     var lat = "";
+//     var lon = "";
+//     var zoom = "";
+
+//     if (locationCoordinatesData) {
+//         var coord = locationCoordinatesData;
+//         var zoom = coord['zoom'];
+
+//         var lat = coord['latitude'];
+//         var lon = coord['longitude'];
+//     }
+
+//     // --- Determine boundary type and geojson source ---
+//     let geoBoundary, geojsonSource;
+//     if (mapType === 'regional') {
+//         geoBoundary = 'nat_reg';
+//         geojsonSource = geojsonFeature_reg;
+//     } else if (mapType === 'province') {
+//         geoBoundary = 'reg_prov';
+//         geojsonSource = geojsonFeature_prov;
+//     } else {
+//         geoBoundary = 'prov_city';
+//         geojsonSource = geojsonFeature_provcity;
+//     }
+
+
+//     console.log("All GeoJSON Features:", geojsonSource.features);
+
+
+//     // --- Create map ---
+//     createLeafletMap(lat, lon, geoBoundary);
+
+//     // --- Feature interaction ---
+//     function onEachFeature(feature, layer) {
+
+//         if (mapData[feature.id]) {
+//             const d = mapData[feature.id];
+
+//             layer.bindTooltip(
+//                 "<strong>" + d.Location_name.replace(/\\n/g, ', ').trim() + ": " + d.Value + " mt (" + d.Year + ")</strong><br><strong>Percent Share to Total Production: " + d.Percentage + "%</strong>"
+//             );
+
+//             const color = heatmapColors[d.fillKey].color;
+//             layer.on('mouseover', () => layer.setStyle({ fillOpacity: 0.3 }));
+//             layer.on('mouseout', () => layer.setStyle({ fillOpacity: getCurrentOpacity() || 0.9, fillColor: color }));
+//         }
+//     }
+
+//     // --- Add layer ---
+//     const mapLayer = L.geoJSON(geojsonSource, {
+//         filter: f => !!mapData[f.id],
+//         style: f => {
+//             if (mapData[f.id]) {
+//                 const c = heatmapColors[mapData[f.id].fillKey].color;
+//                 return { color: '#000', weight: 1, fillColor: c, fillOpacity: 0.9 };
+//             }
+//             return { fill: false, stroke: false };
+//         },
+//         onEachFeature
+//     }).addTo(leaflet_map);
+
+//     // --- Live opacity update ---
+//     $('#opacity').on('input', function () {
+//         const newOpacity = getCurrentOpacity();
+//         mapLayer.setStyle({ fillOpacity: newOpacity });
+//     });
+
+//     // --- Final appearance ---
+//     updateRangeAppearance();
+// }
+
+
 function renderProductionMap(mapType, dbData, locationCoordinatesData, periodText = null) {
 
     resetSlider();
@@ -1933,7 +2081,7 @@ function createLeafletMap(leaflet_map_position_x, leaflet_map_position_y, geoBou
         preferCanvas: true,
         zoomControl: false,
         attributionControl: false,
-        maxZoom: 10, // max zoom level
+        maxZoom: 12, // max zoom level
         minZoom: 5, // min zoom level
     }).setView([lat, lon], zoom); // default LAT AND LAN: 12.788929, 121.938415
 
@@ -1945,14 +2093,16 @@ function createLeafletMap(leaflet_map_position_x, leaflet_map_position_y, geoBou
         subdomains: 'abcd',
     }).addTo(leaflet_map);
 
-    // Optional rice area overlay
-    var riceLayer = addRiceAreaLayer(leaflet_map);
+    // Layers (but not added yet)
+    const riceLayer = addRiceAreaLayer(leaflet_map);
+    const sosLayer = addSosRiceAreaLayer(leaflet_map);
 
     // Add zoom control at bottom-right
     L.control.zoom({ position: 'bottomleft' }).addTo(leaflet_map);
 
     // ✅ Add a button to toggle rice layer visibility
-    addButtonBottomLeft(leaflet_map, riceLayer);
+    // addButtonBottomLeft(leaflet_map, riceLayer);
+    addLayerControlButton(leaflet_map, { riceLayer, sosLayer });
 
 }
 
@@ -2006,14 +2156,38 @@ function addRiceAreaLayer(map) {
         'https://ricelytics.philrice.gov.ph/descriptive_map/tiles/ricearea_tiles/RA_Tiles_2025Sem2/{z}/{x}/{y}.png',
         {
             pane: 'riceAreaPane', // important!
-            maxZoom: 10,
+            maxZoom: 12,
             minZoom: 0,
             opacity: 0.8,
             tms: true
         }
-    ).addTo(map);
+    );
 
     return riceAreaLayer;
+}
+
+//  Function: Add SOS Rice Area Layer
+function addSosRiceAreaLayer(map) {
+
+    // ✅ Create a custom pane for rice area layer
+    if (!map.getPane('sosRiceAreaPane')) {
+        map.createPane('sosRiceAreaPane');
+        map.getPane('sosRiceAreaPane').style.zIndex = 450; // Above basemap (tilePane=200), below overlays (overlayPane=400+)
+    }
+
+    // ✅ Assign the rice layer to the custom pane
+    var sosRiceAreaLayer = L.tileLayer(
+        'https://ricelytics.philrice.gov.ph/descriptive_map/tiles/sos_ricearea_tiles/SOS_Tiles_2024Sem2/{z}/{x}/{y}.png',
+        {
+            pane: 'sosRiceAreaPane', // important!
+            maxZoom: 12,
+            minZoom: 0,
+            opacity: 0.8,
+            tms: true
+        }
+    );
+
+    return sosRiceAreaLayer;
 }
 
 // 🧩 Function: Add Layer Toggle Button
@@ -2049,3 +2223,64 @@ function addButtonBottomLeft(map, layer) {
 
     control.addTo(map);
 }
+
+function addLayerControlButton(map, layers) {
+    const control = L.control({ position: 'bottomleft' });
+
+    control.onAdd = function () {
+        const div = L.DomUtil.create('div', 'leaflet-bar bg-transparent');
+        div.style.padding = '4px';
+        div.style.cursor = 'pointer';
+        div.style.userSelect = 'none';
+        div.style.textAlign = 'center';
+        div.style.width = '40px';
+
+        div.innerHTML = `
+            <button id="toggleLayerMenuBtn" class="btn btn-sm p-0"
+                style="background:none; border:none; box-shadow:none; color:#297746; font-size:20px;"
+                title="Toggle Layer Menu">
+                🗺️
+            </button>
+            <div id="layerMenu" class="bg-white border rounded mt-2 p-2 shadow-sm"
+                style="display:none; position:relative; z-index:1000; min-width:150px; text-align:left;">
+                <div class="form-check mb-1">
+                    <input class="form-check-input" type="checkbox" id="chkRice">
+                    <label class="form-check-label small" for="chkRice">🌾 Rice Area</label>
+                </div>
+                <div class="form-check mb-1">
+                    <input class="form-check-input" type="checkbox" id="chkSOS">
+                    <label class="form-check-label small" for="chkSOS">🛰️ SOS Rice Area</label>
+                </div>
+            </div>
+        `;
+
+        L.DomEvent.disableClickPropagation(div);
+
+        const menu = div.querySelector('#layerMenu');
+        const mainBtn = div.querySelector('#toggleLayerMenuBtn');
+
+        // 🔹 Toggle menu visibility
+        mainBtn.addEventListener('click', () => {
+            menu.style.display = (menu.style.display === 'none') ? 'block' : 'none';
+        });
+
+        // 🌾 Rice Area toggle
+        div.querySelector('#chkRice').addEventListener('change', function () {
+            if (this.checked) map.addLayer(layers.riceLayer);
+            else map.removeLayer(layers.riceLayer);
+        });
+
+        // 🛰️ SOS Rice Area toggle
+        div.querySelector('#chkSOS').addEventListener('change', function () {
+            if (this.checked) map.addLayer(layers.sosLayer);
+            else map.removeLayer(layers.sosLayer);
+        });
+
+        return div;
+    };
+
+    control.addTo(map);
+}
+
+
+
